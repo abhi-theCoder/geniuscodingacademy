@@ -1,0 +1,9 @@
+html {
+    scroll-behavior: smooth;
+}
+
+.review {
+    width: 10px; 
+    text-align:justify;
+}
+ 

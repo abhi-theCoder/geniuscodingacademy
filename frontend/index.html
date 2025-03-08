@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genius Coding Academy</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <nav class="bg-blue-700 p-4 text-white flex justify-between items-center shadow-lg fixed top-0 left-0 w-full z-50">
+        <!-- Logo -->
+        <h1 class="text-2xl font-bold tracking-wide">Genius logo</h1>
+    
+        <!-- Mobile Menu Button -->
+        <button id="menu-btn" class="md:hidden text-white focus:outline-none">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+            </svg>
+        </button>
+    
+        <!-- Desktop Navigation -->
+        <ul class="hidden md:flex space-x-6 text-lg font-medium" id="nav-links">
+            <li><a href="#home" class="hover:text-yellow-300 transition">Home</a></li>
+            <li><a href="#course" class="hover:text-yellow-300 transition">Courses</a></li>
+            <li><a href="#about" class="hover:text-yellow-300 transition">About</a></li>
+            <li><a href="#reviews" class="hover:text-yellow-300 transition">Reviews</a></li>
+            <li><a href="/contact" class="hover:text-yellow-300 transition">Contact</a></li>
+            <li><a href="/login" class="hover:text-yellow-300 transition">Login</a></li>
+        </ul>
+     
+        <!-- Join Us Button -->
+        <a href="/register" class="hidden md:block bg-yellow-400 text-blue-700 font-bold py-2 px-6 rounded-full hover:bg-yellow-300 transition">
+            🚀 Join Us
+        </a>
+    </nav>
+    
+    <!-- Mobile Menu
+    <div id="mobile-menu" class="fixed inset-0 bg-blue-700 text-white transform -translate-x-full transition-transform duration-300 md:hidden z-50">
+        <button id="close-btn" class="absolute top-4 right-4 text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <ul class="flex flex-col space-y-6 mt-16 text-center text-lg">
+            <li><a href="#home" class="block hover:text-yellow-300 transition" onclick="toggleMenu()">Home</a></li>
+            <li><a href="#Reviews" class="block hover:text-yellow-300 transition" onclick="toggleMenu()">Reviews</a></li>
+            <li><a href="#course" class="block hover:text-yellow-300 transition" onclick="toggleMenu()">Courses</a></li>
+            <li><a href="#about" class="block hover:text-yellow-300 transition" onclick="toggleMenu()">About</a></li>
+            <li><a href="/contact" class="block hover:text-yellow-300 transition" onclick="toggleMenu()">Contact</a></li>
+            <li><a href="/login" class="block hover:text-yellow-300 transition" onclick="toggleMenu()">Login</a></li>
+            <li><a href="/register" class="block bg-yellow-400 text-blue-700 font-bold py-2 px-6 rounded-full hover:bg-yellow-300 transition mx-auto w-fit" onclick="toggleMenu()">🚀 Join Us</a></li>
+        </ul>
+    </div> -->
+    
+   
+    
+    
+    <!-- Mobile Sidebar -->
+    <div id="mobile-menu" class="fixed inset-0 bg-blue-600 text-white transform -translate-x-full transition-transform duration-300 md:hidden z-50" style="background-color: rgba(23, 55, 196, 0.78);">
+        <button id="close-btn" class="absolute top-4 right-4 text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <ul class="flex flex-col space-y-6 mt-16 text-center">
+            <li><a href="#home" class="block hover:underline" onclick="toggleMenu()">Home</a></li>
+            <li><a href="#course" class="block hover:underline" onclick="toggleMenu()">Courses</a></li>
+            <li><a href="#about" class="block hover:underline" onclick="toggleMenu()">About</a></li>
+            <li><a href="#reviews" class="block hover:underline" onclick="toggleMenu()">Reviews</a></li>
+            <li><a href="#/contact" class="block hover:underline" onclick="toggleMenu()">Contact</a></li>
+            <li><a href="/login" class="block hover:underline" onclick="toggleMenu()">login</a></li>
+            <li><a href="/register" class="block bg-yellow-400 text-blue-700 font-bold py-2 px-6 rounded-full hover:bg-yellow-300 transition mx-auto w-fit" onclick="toggleMenu()">🚀 Join Us</a></li>
+        </ul>
+    </div>
+
+    
+<section id="home" class="relative flex items-center justify-center h-screen bg-black text-white">
+    <canvas id="threejs-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+    <div class="relative z-10 text-center -mt-16">
+        <h2 class="text-4xl font-bold">Opportunities don’t wait. Stop doubting, start coding, and create the future you deserve!</h2>
+        <p class="text-lg mt-2">Every expert was once a beginner. Take the first step toward your dream tech career today!</p>
+    </div>
+</section>
+    
+<section id="join-us" class="text-center py-20 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+    <h2 class="text-4xl font-extrabold">Learn to Code & Unlock Your Potential</h2>
+    <p class="mt-2 text-lg">Start your journey with out amazing courses and hands-on projects.</p>
+    <a href="/register" 
+       class="inline-block mt-6 px-8 py-3 text-lg font-semibold bg-yellow-400 text-gray-900 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-yellow-300">
+        Join Us Now 🚀
+    </a>
+</section>
+
+
+    <section id="course" class="py-16 bg-white">
+        <h2 class="text-4xl font-bold text-center">Our Courses</h2>
+    
+        <!-- School Students Courses -->
+        <h3 class="text-3xl font-semibold mt-10 text-center">Courses for School Students</h3>
+        <div class="overflow-hidden relative w-full max-w-5xl mx-auto mt-6">
+            <div class="flex space-x-6 overflow-x-auto scrollbar-hide p-4" id="school-carousel">
+                <div class="course-card bg-blue-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/java.png" alt="Java Course" class="w-full h-50 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Java</h4>
+                    <button class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700" onclick="addToCart('Java', 499)">Fees - ₹499/-</button>
+                </div>
+                <div class="course-card bg-blue-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/python.png" alt="Python Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Python</h4>
+                    <button class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700" onclick="addToCart('Python', 499)">Fees - ₹499/-</button>
+                </div>
+                <div class="course-card bg-blue-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/c.png" alt="C Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">C</h4>
+                    <button class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700" onclick="addToCart('C', 499)">Fees - ₹499/-</button>
+                </div>
+                <div class="course-card bg-blue-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/cpp.png" alt="C++ Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">C++</h4>
+                    <button class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700" onclick="addToCart('C++', 499)">Fees - ₹499/-</button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- College Students Courses -->
+        <h3 class="text-3xl font-semibold mt-10 text-center">Courses for College Students</h3>
+        <div class="overflow-hidden relative w-full max-w-5xl mx-auto mt-6">
+            <div class="flex space-x-6 overflow-x-auto scrollbar-hide p-4" id="college-carousel">
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/dsa.png" alt="DSA Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Data Structures & Algorithms</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('DSA', 599)">Fees - ₹599/-</button>
+                </div>
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/C.png" alt="C Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">C</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('C', 599)">Fees - ₹599/-</button>
+                </div>
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/webdev.png" alt="Web Development" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Web Development</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('Web Development', 699)">Fees - ₹699/-</button>
+                </div>
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/cp.png" alt="Competitive Programming" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Competitive Programming</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('CP', 599)">Fees - ₹599/-</button>
+                </div>
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/cpp.png" alt="C++ Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">C++</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('C++', 599)">Fees - ₹599/-</button>
+                </div>
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/java.png" alt="Java Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Java</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('Java', 599)">Fees - ₹599/-</button>
+                </div>
+                <div class="course-card bg-green-100 p-8 rounded-lg text-center shadow-lg w-80 flex-shrink-0">
+                    <img src="images/Python.png" alt="Python Course" class="w-full h-40 rounded-lg">
+                    <h4 class="text-2xl font-bold mt-4">Python</h4>
+                    <button class="mt-4 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700" onclick="addToCart('Python', 599)">Fees - ₹599/-</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="about" class="relative bg-gray-100 py-20">
+        <!-- Background Image -->
+        <div class="absolute inset-0 bg-cover bg-center opacity-20" style="background-image: url('https://source.unsplash.com/1600x900/?coding,technology');"></div>
+    
+        <div class="container mx-auto text-center px-6 relative">
+            <h2 class="text-4xl font-extrabold text-blue-700">About Us</h2>
+            <div class="w-24 h-1 bg-yellow-400 mx-auto mt-2"></div>
+    
+            <p class="prose text-gray-700 max-w-2xl mx-auto mt-6 leading-relaxed">
+                Genius Coding Academy is a place where your fears become your strengths. We don’t just teach what to study—we show you how to study effectively. 
+                Learning here is engaging, interactive, and enjoyable, ensuring you grasp every concept thoroughly.
+            </p>
+    
+            <!-- Call to Action -->
+            <a href="/contact" class="mt-6 inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-full shadow-md hover:bg-blue-500 transition">
+                Contact Us Now 💫
+            </a>
+        </div>
+    </section>
+    
+    
+    <section id="reviews" class="py-16 bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 text-gray-900">
+        <div class="max-w-6xl mx-auto text-center">
+            <h2 class="text-4xl font-extrabold text-gray-800 mb-8">What Our Students Say</h2>
+    
+            <!-- Desktop View: Grid Layout, Mobile View: Scrollable Row -->
+            <div class="sm:grid sm:grid-cols-3 sm:gap-6 flex gap-4 overflow-x-auto scrollbar-hide px-4">
+                
+                <!-- Review 1 -->
+                <div class="review bg-white shadow-xl p-6 rounded-2xl border border-gray-200 min-w-[90%] sm:w-auto flex-shrink-0">
+                    <p class="text-lg font-semibold">"Your teaching style is engaging and interactive, which has made learning fun and enjoyable.  
+                        I appreciate the way you encourage discussion and questions, creating a safe and open environment for us to learn and share our thoughts."
+                        <br>Thank you so much❤️</p>
+                    <p class="mt-2 text-gray-600">- Udeeptta</p>
+                </div>
+                
+                <!-- Review 2 -->
+                <div class="review bg-white shadow-xl p-6 rounded-2xl border border-gray-200 min-w-[90%] sm:w-auto flex-shrink-0">
+                    <p class="text-lg font-semibold">"Abhishek bhaiya is an excellent teacher in the field of computer, who made the complex concepts easy to us."</p>
+                    <p class="mt-2 text-gray-600">- Rupam</p>
+                </div>
+                
+                <!-- Review 3 -->
+                <div class="review bg-white shadow-xl p-6 rounded-2xl border border-gray-200 min-w-[90%] sm:w-auto flex-shrink-0">
+                    <p class="text-lg font-semibold">"Abhishek sir is an exceptional educator who has made a profound impact on my learning journey. Their teaching style is engaging, informative, and tailored to meet the diverse needs of their students. Their ability to break down complex concepts into manageable and understandable parts is impressive. Highly recommend!"</p>
+                    <p class="mt-2 text-gray-600">- Amit</p>
+                </div>
+    
+                <!-- Review 4 -->
+                <div class="review bg-white shadow-xl p-6 rounded-2xl border border-gray-200 min-w-[90%] sm:w-auto flex-shrink-0">
+                    <p class="text-lg font-semibold">"I have studied in tuition for the last two years, and there was a good environment in the class. The tuition teacher provided a friendly atmosphere and quality education. He gave me enough time to focus on my studies in the tuition classes and helped me solve my problems and mistakes in both coding and theory."</p>
+                    <p class="mt-2 text-gray-600">- Akshat</p>
+                </div>
+    
+                <!-- Review 5 -->
+                <div class="review bg-white shadow-xl p-6 rounded-2xl border border-gray-200 min-w-[90%] sm:w-auto flex-shrink-0">
+                    <p class="text-lg font-semibold">"As a college student, mastering C and DSA can be challenging due to the limited time provided by the college. However, at Genius Coding Academy, Abhishek Bhaiya taught me in such a clear and effective manner that the concepts became deeply ingrained in my understanding. I highly recommend this academy for quality learning."</p>
+                    <p class="mt-2 text-gray-600">- Rajesh Kumar</p>
+                </div>
+    
+                <!-- Review 6 -->
+                <div class="review bg-white shadow-xl p-6 rounded-2xl border border-gray-200 min-w-[90%] sm:w-auto flex-shrink-0">
+                    <p class="text-lg font-semibold">"Best platform for learning Full-Stack Web Development with hands-on learning and expert guidance! Gain in-depth knowledge of front-end and back-end technologies, build real-world projects, and enhance coding skills. Perfect place for anyone who want to upskill!!"</p>
+                    <p class="mt-2 text-gray-600">- Simran</p>
+                </div>
+    
+            </div>
+        </div>
+    </section>
+    
+    
+    
+    
+    
+    <!-- Footer -->
+    <footer class="bg-blue-900 text-white py-10">
+        <div class="max-w-6xl mx-auto px-5 grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-left">
+            <!-- Brand Name -->
+            <div>
+                <h2 class="text-2xl font-bold">Genius Coding Academy</h2>
+                <p class="text-sm mt-2">© 2025 All Rights Reserved.</p>
+            </div>
+    
+            <!-- Contact Info -->
+            <div>
+                <h3 class="text-xl font-semibold">Contact Us</h3>
+                <p class="text-lg">Email: <a href="mailto:contact@geniuscodingacademy.com" class="hover:underline">contact@geniuscodingacademy.com</a></p>
+                <p class="text-lg">Phone: <a href="tel:+917596933495" class="hover:underline">+91 7596933495</a></p>
+            </div>
+    
+            <!-- Courses -->
+            <div>
+                <h3 class="text-xl font-semibold">Courses</h3>
+                <ul class="space-y-1 mt-2">
+                    <li><a href="#course" class="hover:text-gray-300">Learn Java</a></li>
+                    <li><a href="#course" class="hover:text-gray-300">C & C++</a></li>
+                    <li><a href="#course" class="hover:text-gray-300">Data Structures & Algorithms</a></li>
+                    <li><a href="#course" class="hover:text-gray-300">Competitive Programming</a></li>
+                    <li><a href="#course" class="hover:text-gray-300">Web Development</a></li>
+                    <li><a href="#course" class="hover:text-gray-300">Python</a></li>
+                </ul>
+            </div>
+        </div>
+    
+        <!-- Bottom Line -->
+        <div class="text-center mt-6 border-t border-gray-500 pt-4 font-semibold text-xl">
+            Designed with ❤️ for students <br> by <span class="text-sm">Genius Coding Academy</span>
+        </div>
+        
+    </footer>
+    
+</body>
+</html>
