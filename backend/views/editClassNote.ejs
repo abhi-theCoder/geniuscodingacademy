@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Class Note</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 shadow-lg rounded-lg w-96">
+        <h1 class="text-2xl font-bold text-gray-800 text-center">Edit Class Note</h1>
+ 
+        <form action="/editClassNote/<%= note._id %>" method="POST" class="mt-4">
+            <input type="number" name="day" value="<%= note.day %>" required class="border p-2 rounded-lg w-full">
+            <textarea name="notes" required class="border p-2 rounded-lg w-full mt-2"><%= note.notes %></textarea>
+            <textarea name="homework" required class="border p-2 rounded-lg w-full mt-2"><%= note.homework %></textarea>
+            <textarea name="pdfLink" required class="border p-2 rounded-lg w-full mt-2"><%= note.pdfLink %></textarea>
+            <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded-lg mt-4 w-full">Update Class Note</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="/admin-dashboard" class="text-blue-500 hover:underline">Cancel</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex text-gray-900">
+    <!-- Sidebar Toggle Button -->
+    <button id="sidebarToggle" class="absolute top-4 left-4 bg-indigo-500 text-white p-2 rounded-lg md:hidden">☰</button>
+     
+    <!-- Sidebar -->
+    <div id="sidebar" class="w-64 h-screen bg-gray-900 text-white flex flex-col p-4 shadow-lg fixed md:relative transition-transform transform -translate-x-full md:translate-x-0">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-indigo-400">Dashboard</h2>
+            <button id="closeSidebar" class="md:hidden text-gray-400 p-2">✖</button>
+        </div>
+        <ul>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" onclick="showContent('home')">Home</a>
+            </li>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" onclick="showContent('profile')">Profile</a>
+            </li>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" onclick="showContent('settings')">Settings</a>
+            </li>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" onclick="showContent('classnotes')">Class Notes</a>
+            </li>
+        </ul>
+        <div class="">
+            <a href="/logout" class="bg-red-500 text-white px-12 py-2 rounded-lg hover:bg-red-600">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <canvas id="canvas3D" class="absolute top-0 left-0 w-full h-full -z-10"></canvas>
+
+    <div class="flex-1 grid place-items-center min-h-screen p-6 ml-0 md:ml-66 transition-all mb-10">
+        <div class="w-full max-w-3xl mb-20">
+            <% if (message) { %>
+                <div id="alert-box" class="mt-4 text-center px-4 py-2 rounded-lg text-white bg-green-500"><%= message %></div>
+                <br>
+            <% } %>
+            <div id="home" class="content-section">  
+                <div class="text-center">
+                    <h1 class="text-4xl font-bold text-indigo-700 mb-4 animate-fadeIn">
+                        Welcome, <%= user.firstName %>! 💫
+                    </h1>
+                    <p class="text-lg text-gray-600 italic mb-6">"Every new day is another chance to change your life!"</p>
+                    <button class="bg-indigo-500 text-white px-6 py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-indigo-600 transition-all animate-pulse">
+                        Explore Dashboard →
+                    </button>
+                </div>
+            </div>
+            
+            
+            <div id="profile" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-gray-900 text-center">Profile</h1>
+                <form id="profileForm" method="POST" action="/update-profile" class="bg-white p-6 shadow-lg rounded-lg">
+                    <label class="block text-gray-700">First Name:</label>
+                    <input type="text" name="firstName" value="<%= user.firstName %>" class="w-full p-2 border rounded mb-2" required>
+                    
+                    <label class="block text-gray-700">Last Name:</label>
+                    <input type="text" name="lastName" value="<%= user.lastName %>" class="w-full p-2 border rounded mb-2" required>
+                    
+                    <label class="block text-gray-700">Username:</label>
+                    <input type="text" name="username" value="<%= user.username %>" class="w-full p-2 border rounded mb-2" required readonly>
+                    
+                    <label class="block text-gray-700">Email:</label>
+                    <input type="email" name="email" value="<%= user.email %>" class="w-full p-2 border rounded mb-2" required readonly>
+                    
+                    <button type="submit" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 w-full">Update Profile</button>
+                </form>
+            </div>
+            
+            <div id="classnotes" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-gray-900 text-center">Class Notes</h1>
+
+                <% if (user.access == 'pending') { %>
+                    <div class="bg-red-100 text-red-700 border border-red-400 p-4 rounded-lg text-center">
+                        ❌ <strong>Access Denied!</strong> You don't have access to class notes.
+                    </div>
+                <% } else { %>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <% classnotes.forEach(note => { %>
+                            <div class="bg-white p-4 shadow-lg rounded-lg border border-gray-200">
+                                <h2 class="text-lg font-bold text-indigo-700">📖 Day <%= note.day %></h2>
+                                <p class="mt-2 text-gray-800"><%= note.notes %></p>
+                
+                                <!-- View Button to Open PDF -->
+                                <% if (note.pdfLink) { %>
+                                    <button onclick="openPDF('<%= note.pdfLink %>')" 
+                                            class="bg-blue-500 text-white px-3 py-1 mt-3 rounded hover:bg-blue-600 transition">
+                                        📄 View PDF
+                                    </button>
+                                <% } %>
+                
+                                <h3 class="text-md font-semibold mt-4 text-indigo-500">📝 Homework</h3>
+                                <p class="text-gray-600"><%= note.homework %></p>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } %>
+                
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- PDF Modal -->
+<div id="pdfModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-[80%] h-[80%] relative">
+        <button onclick="closePDF()" class="absolute top-9 right-8 bg-red-500 text-white px-4 py-2 rounded">✖</button>
+        <iframe id="pdfViewer" src="" class="w-full h-full border-none"></iframe>
+    </div>
+</div>
+
+    <script>
+        function showContent(section) {
+            document.querySelectorAll('.content-section').forEach(div => div.classList.add('hidden'));
+            document.getElementById(section).classList.remove('hidden');
+        }
+
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        const closeSidebar = document.getElementById("closeSidebar");
+
+        sidebarToggle.addEventListener("click", () => {
+            sidebar.classList.toggle("-translate-x-full");
+        });
+
+        closeSidebar.addEventListener("click", () => {
+            sidebar.classList.add("-translate-x-full");
+        });
+
+        // Fade out the message after 3 seconds
+        setTimeout(() => {
+            let alertBox = document.getElementById("alert-box");
+            if (alertBox) {
+                alertBox.style.transition = "opacity 1s";
+                alertBox.style.opacity = "0";
+                setTimeout(() => alertBox.remove(), 1000);
+            }
+        }, 3000);
+
+        function openPDF(pdfLink) {
+            if (!pdfLink) {
+                alert("No PDF available for this note.");
+                return;
+            }
+            document.getElementById("pdfViewer").src = pdfLink + "?embedded=true"; // Ensure embedding
+            document.getElementById("pdfModal").classList.remove("hidden");
+        }
+    
+        function closePDF() {
+            document.getElementById("pdfModal").classList.add("hidden");
+            document.getElementById("pdfViewer").src = ""; // Reset src to stop loading
+        }
+    </script>
+<!-- Threejs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+    let scene, camera, renderer, ring, stars = [];
+
+    function init3D() {
+        const canvas = document.getElementById("canvas3D");
+    
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        renderer = new THREE.WebGLRenderer({ 
+            canvas, 
+            alpha: true, 
+            antialias: true, 
+            powerPreference: "high-performance" // 🚀 Mobile optimization
+        });
+    
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    
+        camera.position.z = 6;
+    
+        // Optimized Rotating Ring (Lower segment count for better performance)
+        let ringGeometry = new THREE.TorusGeometry(1.5, 0.3, 10, 40);
+        let ringMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x5a67d8, 
+            emissive: 0x5a67d8, 
+            roughness: 0.2 
+        });
+        ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        scene.add(ring);
+    
+        // Lighting
+        let ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        let pointLight = new THREE.PointLight(0xffffff, 0.8);
+        pointLight.position.set(5, 5, 5);
+        scene.add(ambientLight, pointLight);
+    
+        // Optimize Floating Stars
+        let starGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+        let starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    
+        let numStars = window.innerWidth < 768 ? 30 : 80; // Reduce stars on mobile 🚀
+        for (let i = 0; i < numStars; i++) {
+            let star = new THREE.Mesh(starGeometry, starMaterial);
+            star.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+            scene.add(star);
+            stars.push(star);
+        }
+    
+        animate();
+    }
+    
+    function animate() {
+        let fps = window.innerWidth < 768 ? 45 : 60; // ⏳ Reduce FPS on mobile for performance
+        setTimeout(() => {
+            requestAnimationFrame(animate);
+        }, 1000 / fps);
+    
+        // Rotate ring smoothly
+        ring.rotation.x += 0.015;
+        ring.rotation.y += 0.025;
+    
+        // Move stars
+        stars.forEach(star => {
+            star.position.y += 0.02;
+            if (star.position.y > 5) {
+                star.position.y = -5; // Reset position
+            }
+        });
+    
+        renderer.render(scene, camera);
+    }
+    
+    init3D();
+    
+    
+</script>
+
+</body>
+</html>
+<!-- <iframe src="https://drive.google.com/file/d/1C1XktKWMjZDlb0XH_NsIDkJZwD9oFudv/preview" frameborder="0" width="50%" ></iframe> -->
