@@ -3,7 +3,7 @@ require("dotenv").config({ path: "./.env" });
 const express = require("express");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const session = require("express-session");
+const session = require("express-session") ;
 const nodemailer = require('nodemailer');
 const connectDB = require("./models/db");
 const User = require("./models/User");
