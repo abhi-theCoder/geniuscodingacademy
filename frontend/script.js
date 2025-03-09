@@ -65,8 +65,12 @@ function autoScrollCarousel(carouselId, intervalTime) {
     const cards = carousel.children;
     let index = 0;
     let interval;
+    let isTouching = false;
+    let startX, scrollLeft;
 
     function scrollToNext() {
+        if (isTouching) return; // Prevent auto-scroll while user is swiping
+
         if (index >= cards.length) {
             index = 0; // Reset to the first card after reaching the end
         }
@@ -86,16 +90,40 @@ function autoScrollCarousel(carouselId, intervalTime) {
         clearInterval(interval);
     }
 
+    // Touch event handlers
+    function handleTouchStart(e) {
+        isTouching = true;
+        stopAutoScroll();
+        startX = e.touches[0].pageX - carousel.offsetLeft;
+        scrollLeft = carousel.scrollLeft;
+    }
+
+    function handleTouchMove(e) {
+        if (!isTouching) return;
+        const x = e.touches[0].pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 1.5; // Adjust scroll speed
+        carousel.scrollLeft = scrollLeft - walk;
+    }
+
+    function handleTouchEnd() {
+        isTouching = false;
+        startAutoScroll();
+    }
+
     // Start scrolling initially
     startAutoScroll();
 
-    // Stop scrolling when hovered
+    // Stop auto-scroll on hover
     carousel.addEventListener("mouseenter", stopAutoScroll);
-    // Resume scrolling when hover is removed
+    // Resume auto-scroll when hover is removed
     carousel.addEventListener("mouseleave", startAutoScroll);
+
+    // Touch event listeners
+    carousel.addEventListener("touchstart", handleTouchStart);
+    carousel.addEventListener("touchmove", handleTouchMove);
+    carousel.addEventListener("touchend", handleTouchEnd);
 }
 
 // Apply to both carousels
 autoScrollCarousel("school-carousel", 1500); // Scroll every 1.5s
 autoScrollCarousel("college-carousel", 1500);
-

@@ -81,6 +81,9 @@ app.get("/login", async(req, res) => {
   return res.render("login", {message : null});
 
   const classnotes = await ClassNote.find();
+  if(req.session.user.role == 'admin')
+  return res.redirect('/admin');
+
   res.render("dashboard", { user: req.session.user, classnotes, message:null });
 });
  
@@ -91,18 +94,24 @@ app.post("/login", async (req, res) => {
   const user = await User.findOne({ $or: [{ username }, { email: username }] });
   
   if (user && (await bcrypt.compare(password, user.password))) {
-    req.session.user = user;
+      req.session.user = {
+        id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: "user" // Default role
+    };
 
     if(role === 'admin'){
       const {security_code} = req.body; 
       // console.log(security_code+" "+process.env.security_code);
-      if(security_code != process.env.security_code)
+      if(security_code != process.env.security_code){
         return res.render("login",{ message : "Wrong security code entered" , type : "error" });
+      }
       else{
-        const classnotes = await ClassNote.find();
-        // Fetch users and class notes for admin
-        const users = await User.find();
-        return res.render("admin",{user: req.session.user, users, classnotes, message:"Successfully Logged in"});
+        req.session.user.role = 'admin';
+        return res.redirect('/admin');
       }
     }
     
@@ -115,19 +124,24 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/admin", checkAuth, async(req,res)=>{
-  const classnotes = await ClassNote.find();
-  // Fetch users and class notes for admin
-  const users = await User.find();
-  return res.render("admin",{user: req.session.user, users, classnotes, message:"Successfully Logged in"});
+  if(req.session.user.role == 'admin'){
+    const classnotes = await ClassNote.find();
+    // Fetch users and class notes for admin
+    const users = await User.find();
+    return res.render("admin", { user: req.session.user, users, classnotes, message:"Successfully Logged in" });
+  }
+
+  res.send("<h1>Unauthorised!!</h1>")
 })
- 
 
 app.get("/contact", (req,res)=>{
   res.render('contact',{ message : null });
 })
 app.get("/dashboard", checkAuth, async(req, res) => {
   const classnotes = await ClassNote.find();
-  res.render("dashboard", { user: req.session.user, classnotes, message:null });
+  const message = req.session.message || null;
+  req.session.message = null;
+  res.render("dashboard", { user: req.session.user, classnotes, message });
 });
 
 app.post("/contact", async (req, res) => {
@@ -166,17 +180,6 @@ app.post("/contact", async (req, res) => {
   }
 });
 
-// Admin Dashboard - Show Class Notes
-app.get('/admin-dashboard', async (req, res) => {
-  try {
-      const classnotes = await ClassNote.find();
-      res.render('admin', { classnotes });
-  } catch (err) {
-      console.error(err);
-      res.send("Error loading dashboard");
-  }
-});
-
 // Add Class Note
 app.post('/addClassNote', async (req, res) => {
   try {
@@ -187,10 +190,10 @@ app.post('/addClassNote', async (req, res) => {
           pdfLink: req.body.pdfLink
       });
       await newNote.save();
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   } catch (err) {
       console.error(err);
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   }
 });
 
@@ -201,7 +204,7 @@ app.get('/editClassNote/:id', async (req, res) => {
       res.render('editClassNote', { note });
   } catch (err) {
       console.error(err);
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   }
 });
 
@@ -214,10 +217,10 @@ app.post('/editClassNote/:id', async (req, res) => {
           homework: req.body.homework,
           pdfLink : req.body.pdfLink
       });
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   } catch (err) {
       console.error(err);
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   }
 });
 
@@ -225,12 +228,16 @@ app.post('/editClassNote/:id', async (req, res) => {
 app.post('/deleteClassNote/:id', async (req, res) => {
   try {
       await ClassNote.findByIdAndDelete(req.params.id);
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   } catch (err) {
       console.error(err);
-      res.redirect('/admin-dashboard');
+      res.redirect('/admin');
   } 
 });
+
+app.get("/update-profile", async (req, res) => {
+  return res.redirect("/dashboard");
+})
 
 // Update profile 
 app.post("/update-profile", async (req, res) => {
@@ -249,7 +256,9 @@ app.post("/update-profile", async (req, res) => {
 
       await user.save();
       const classnotes = await ClassNote.find();
-      res.render("dashboard", { user, classnotes, message: "Profile updated successfully!" });
+      req.session.message = "Profile updated successfully!";
+      res.redirect('/dashboard');
+      // res.render("dashboard", { user, classnotes,  });
   } catch (error) {
       console.error(error);
       res.status(500).send("Internal Server Error");
