@@ -4,28 +4,26 @@
     <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 shadow-lg rounded-lg w-96">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-6 shadow-lg rounded-lg w-full max-w-2xl">
         <h1 class="text-2xl font-bold text-gray-800 text-center">Admin Dashboard</h1>
         
         <!-- Class Notes List -->
-        <div class="mt-4">
+        <div class="mt-4 space-y-4">
             <% classnotes.forEach(note => { %>
-                <div class="border p-4 rounded-lg mt-2">
+                <div class="border p-4 rounded-lg">
                     <h2 class="text-lg font-bold text-indigo-700">Day <%= note.day %></h2>
                     <p class="text-gray-800"><%= note.notes %></p>
                     <h3 class="text-md font-semibold text-indigo-500 mt-2">Homework</h3>
                     <p class="text-gray-600"><%= note.homework %></p>
 
-                    <!-- View PDF Button -->
                     <% if (note.pdfLink) { %>
                         <button onclick="openPDF('<%= note.pdfLink %>')" 
-                                class="bg-green-500 text-white px-3 py-1 mt-3 rounded hover:bg-green-600">
+                                class="bg-green-500 text-white px-3 py-1 mt-3 rounded hover:bg-green-600 w-full">
                             View PDF
                         </button>
                     <% } %>
 
-                    <!-- Edit & Delete Buttons -->
                     <div class="flex justify-between mt-2">
                         <a href="/editClassNote/<%= note._id %>" class="text-blue-500 hover:underline">Edit</a>
                         <form action="/deleteClassNote/<%= note._id %>" method="POST">
@@ -37,48 +35,41 @@
         </div>
 
         <!-- Add Class Note Form -->
-        <form action="/addClassNote" method="POST" class="mt-6">
+        <form action="/addClassNote" method="POST" class="mt-6 space-y-2">
             <input type="number" name="day" placeholder="Day Number" required class="border p-2 rounded-lg w-full">
-            <textarea name="notes" placeholder="Class Notes" required class="border p-2 rounded-lg w-full mt-2"></textarea>
-            <textarea name="homework" placeholder="Homework" required class="border p-2 rounded-lg w-full mt-2"></textarea>
-            <input type="text" name="pdfLink" placeholder="Google Drive PDF Link (Optional)" class="border p-2 rounded-lg w-full mt-2">
-            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg mt-4 w-full">Add Class Note</button>
+            <textarea name="notes" placeholder="Class Notes" required class="border p-2 rounded-lg w-full"></textarea>
+            <textarea name="homework" placeholder="Homework" required class="border p-2 rounded-lg w-full"></textarea>
+            <input type="text" name="pdfLink" placeholder="Google Drive PDF Link (Optional)" class="border p-2 rounded-lg w-full">
+            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg w-full hover:bg-blue-600">Add Class Note</button>
         </form>
 
         <!-- User Management -->
         <h2 class="text-xl font-bold text-gray-800 text-center mt-6">Manage Users</h2>
-        <div class="mt-4">
+        <div class="mt-4 space-y-4">
             <% users.forEach(user => { %>
-                <div class="border p-4 rounded-lg mt-2">
+                <div class="border p-4 rounded-lg">
                     <h3 class="text-lg font-bold text-indigo-700"><%= user.username %></h3>
                     <p class="text-gray-800">Email: <%= user.email %></p>
                     <p class="text-gray-600">Access: <%= user.access %></p>
 
-                    <!-- Edit Password Form -->
                     <form action="/updatePassword" method="POST" class="mt-2">
                         <input type="hidden" name="userId" value="<%= user._id %>">
-                        <input type="password" name="newPassword" placeholder="New Password" required class="border p-2 rounded-lg w-full mt-1">
-                        <button type="submit" class="bg-yellow-500 text-white px-3 py-1 mt-2 rounded hover:bg-yellow-600 w-full">
-                            Update Password
-                        </button> 
+                        <input type="password" name="newPassword" placeholder="New Password" required class="border p-2 rounded-lg w-full">
+                        <button type="submit" class="bg-yellow-500 text-white py-2 mt-2 rounded-lg w-full hover:bg-yellow-600">Update Password</button>
                     </form>
 
-                    <!-- Update Access -->
                     <form action="/updateAccess" method="POST" class="mt-2">
                         <input type="hidden" name="userId" value="<%= user._id %>">
-                        <select name="access" class="border p-2 rounded-lg w-full mt-1">
+                        <select name="access" class="border p-2 rounded-lg w-full">
                             <option value="pending" <%= user.access === "pending" ? "selected" : "" %>>Pending</option>
                             <option value="accessed" <%= user.access === "accessed" ? "selected" : "" %>>Accessed</option>
                         </select>
-                        <button type="submit" class="bg-blue-500 text-white px-3 py-1 mt-2 rounded hover:bg-blue-600 w-full">
-                            Update Access
-                        </button>
+                        <button type="submit" class="bg-blue-500 text-white py-2 mt-2 rounded-lg w-full hover:bg-blue-600">Update Access</button>
                     </form>
                 </div>
             <% }); %>
         </div>
 
-        <!-- Back to Dashboard -->
         <div class="text-center mt-4">
             <a href="/dashboard" class="text-blue-500 hover:underline">Go to Dashboard</a>
         </div>
@@ -86,13 +77,12 @@
 
     <!-- PDF Viewer -->
     <div id="pdfViewerContainer" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-[80%] h-[80%] relative">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl h-[80%] relative">
             <button onclick="closePDF()" class="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full">✖</button>
             <iframe id="pdfViewer" src="" class="w-full h-full border-none"></iframe>
         </div>
     </div>
 
-    <!-- JavaScript -->
     <script>
         function openPDF(pdfLink) {
             if (!pdfLink) {
