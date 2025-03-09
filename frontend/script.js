@@ -127,3 +127,22 @@ function autoScrollCarousel(carouselId, intervalTime) {
 // Apply to both carousels
 autoScrollCarousel("school-carousel", 1500); // Scroll every 1.5s
 autoScrollCarousel("college-carousel", 1500);
+
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener("click", function (e) {
+        e.preventDefault(); // Prevent URL from changing
+        const targetId = this.getAttribute("href").substring(1); // Remove #
+        const target = document.getElementById(targetId);
+
+        if (target) {
+            window.scrollTo({
+                top: target.offsetTop - 50, // Adjust for fixed headers
+                behavior: "smooth"
+            });
+
+            // Update URL without reloading
+            history.pushState(null, null, `#${targetId}`);
+        }
+    });
+});
