@@ -8,6 +8,7 @@ const nodemailer = require('nodemailer');
 const connectDB = require("./models/db");
 const User = require("./models/User");
 const ClassNote = require("../backend/models/ClassNote");
+const { access } = require("fs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;  
@@ -96,10 +97,11 @@ app.post("/login", async (req, res) => {
   if (user && (await bcrypt.compare(password, user.password))) {
       req.session.user = {
         id: user._id,
-        username: user.username,
         firstName: user.firstName,
         lastName: user.lastName,
+        username: user.username,
         email: user.email,
+        access: user.access,
         role: "user" // Default role
     };
 
