@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const connectDB = require("./models/db");
 const User = require("./models/User");
 const ClassNote = require("../backend/models/ClassNote");
-const { access } = require("fs");
+const { access } = require("fs"); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;  
