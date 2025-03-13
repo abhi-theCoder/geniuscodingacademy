@@ -4,42 +4,83 @@
     <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dash-hover {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dash-hover::before {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.4s;
+        }
+
+        .dash-hover:hover::before {
+            left: 100%;
+        }
+
+        .input-focus:focus {
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); /* Indigo glow */
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen px-4">
+<body class="bg-gradient-to-r from-blue-50 via-indigo-100 to-purple-100 flex items-center justify-center min-h-screen px-4">
     <% if (message) { %>
         <div id="alert-box" class="absolute top-4 px-4 py-2 rounded-lg text-white text-center
-            <% if (type === 'success') { %> bg-green-500 <% } else { %> bg-red-500 <% } %>">
+            <% if (type === 'success') { %> bg-emerald-400 <% } else { %> bg-rose-500 <% } %>">
             <%= message %>
         </div>
     <% } %>
 
-    <div class="bg-white px-6 py-8 shadow-lg rounded-lg w-full max-w-lg">
-        <h1 class="text-2xl font-bold text-gray-800 text-center">Login</h1>
-        <form action="/login" method="POST" class="mt-4 space-y-4">
+    <div class="bg-white px-8 py-10 shadow-2xl rounded-2xl w-full max-w-md fade-in">
+        <h1 class="text-3xl font-extrabold text-indigo-600 text-center">Welcome Back!</h1>
+        <p class="text-center text-gray-500 mt-2">Please log in to your account</p>
+
+        <form action="/login" method="POST" class="mt-6 space-y-4">
             <label class="block font-semibold text-gray-700">Login as:</label>
             <select name="role" id="role" onchange="toggleSecurityCode()" 
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                class="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-400 input-focus">
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
             </select>
 
             <input type="text" name="username" placeholder="Username or Email" required 
-            class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring focus:ring-blue-400">
+            class="w-full px-4 py-3 border border-indigo-300 rounded-lg text-lg focus:outline-none focus:ring focus:ring-indigo-400 input-focus">
 
             <input type="password" name="password" placeholder="Password" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                class="w-full px-4 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-400 input-focus">
 
             <div id="security-code-container" class="hidden">
                 <input type="password" name="security_code" placeholder="Enter Security Code" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-red-400">
+                    class="w-full px-4 py-3 border border-rose-400 rounded-lg focus:outline-none focus:ring focus:ring-rose-400 input-focus">
             </div>
 
             <button type="submit" 
-                class="w-full bg-blue-500 text-white py-3 rounded-lg text-lg hover:bg-blue-600">Login</button>
+                class="w-full bg-indigo-500 text-white py-3 rounded-lg text-lg dash-hover hover:bg-indigo-600 transition-all">Login</button>
         </form>
 
         <div class="text-center mt-4">
-            <a href="/register" class="text-blue-500 hover:underline">Don't have an account? Register</a>
+            <a href="/register" class="text-indigo-500 hover:underline">Don't have an account? Register</a>
         </div>
     </div>
 

@@ -4,6 +4,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media screen and (min-width : 600px) {
+            #pdfModal {
+                left: 260px; /* Adjust based on sidebar width */
+                width: calc(100% - 260px);
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 flex text-gray-900">
     <!-- Sidebar Toggle Button -->
@@ -19,16 +27,16 @@
         </div>
         <ul>
             <li class="mb-4 p-2 rounded hover:bg-gray-700">
-                <a href="#" onclick="showContent('home')">Home</a>
+                <a href="#"  class="block w-full h-full" onclick="showContent('home')">Home</a>
             </li>
             <li class="mb-4 p-2 rounded hover:bg-gray-700">
-                <a href="#" onclick="showContent('profile')">Profile</a>
+                <a href="#"  class="block w-full h-full" onclick="showContent('profile')">Profile</a>
             </li>
             <li class="mb-4 p-2 rounded hover:bg-gray-700">
-                <a href="#" onclick="showContent('settings')">Settings</a>
+                <a href="#"  class="block w-full h-full" onclick="showContent('settings')">Settings</a>
             </li>
             <li class="mb-4 p-2 rounded hover:bg-gray-700">
-                <a href="#" onclick="showContent('classnotes')">Class Notes</a>
+                <a href="#"  class="block w-full h-full" onclick="showContent('classnotes')">Class Notes</a>
             </li>
         </ul>
 
@@ -83,6 +91,41 @@
                     <button type="submit" class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 w-full">Update Profile</button>
                 </form>
             </div>
+            
+            <div id="settings" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-gray-900 text-center">Settings</h1>
+                
+                <form id="passwordForm" method="POST" action="/updatePassword" class="bg-white p-6 shadow-lg rounded-lg max-w-md mx-auto">
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4">🔒 Update Password</h2>
+            
+                    <div class="relative mb-4">
+                        <label class="block text-gray-700 font-medium mb-1">New Password:</label>
+                        <input type="password" id="newPassword" name="newPassword" class="w-full p-3 border rounded-lg pr-10" required>
+                        <span id="eye1" class="absolute right-3 top-11 cursor-pointer text-gray-500" onclick="togglePassword('newPassword', 'eye1')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7Z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    
+                    <div class="relative mb-4">
+                        <label class="block text-gray-700 font-medium mb-1">Confirm New Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="w-full p-3 border rounded-lg pr-10" required>
+                        <span id="eye2" class="absolute right-3 top-11 cursor-pointer text-gray-500" onclick="togglePassword('confirmPassword', 'eye2')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7Z"/>
+                            </svg>
+                        </span>
+                    </div>
+                    <p id="passwordError" class="text-red-500 text-sm mb-4 hidden">❌ Passwords do not match</p>
+                    <button type="submit" class="w-full bg-indigo-500 text-white px-4 py-3 rounded-lg hover:bg-indigo-600 transition-all">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+                       
             
             <div id="classnotes" class="content-section hidden">
                 <h1 class="text-2xl font-bold mb-4 text-gray-900 text-center">Class Notes</h1>
@@ -269,6 +312,32 @@
     
     init3D();
     
+    //To toggle password
+    function togglePassword(inputId, eyeId) {
+        let inputField = document.getElementById(inputId);
+        let eyeIcon = document.getElementById(eyeId);
+    
+        if (inputField.type === "password") {
+            inputField.type = "text";
+            eyeIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-closed"><path d="m15 18-.722-3.25"/><path d="M2 8a10.645 10.645 0 0 0 20 0"/><path d="m20 15-1.726-2.05"/><path d="m4 15 1.726-2.05"/><path d="m9 18 .722-3.25"/></svg>`; // Closed eye icon
+        } else {
+            inputField.type = "password";
+            eyeIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7Z"/></svg>`; // Open eye icon
+        }
+    }
+
+    document.getElementById("passwordForm").addEventListener("submit", function (event) {
+        let newPassword = document.getElementById("newPassword").value;
+        let confirmPassword = document.getElementById("confirmPassword").value;
+        let passwordError = document.getElementById("passwordError");
+
+        if (newPassword !== confirmPassword) {
+            passwordError.classList.remove("hidden"); // Show error message
+            event.preventDefault(); // Prevent form submission
+        } else {
+            passwordError.classList.add("hidden"); // Hide error message
+        }
+    });
     
 </script>
 

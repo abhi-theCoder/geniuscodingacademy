@@ -265,11 +265,27 @@ app.post("/update-profile", async (req, res) => {
       console.error(error);
       res.status(500).send("Internal Server Error");
   }
-});
+}); 
 
 //updatePassword
 app.post("/updatePassword", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send("<h1>Unauthorized!! <br>You need to login first.</h1>"); 
+  }
+
+  if(req.session.user.role == 'user'){ 
+    const userId = req.session.user.id;
+    
+    const { newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+    req.session.message = "Password updated successfully!";
+    return res.redirect('/dashboard'); 
+  }
+    //If user-role is admin
   const { userId, newPassword } = req.body;
+  
   const hashedPassword = await bcrypt.hash(newPassword, 10);
 
   await User.findByIdAndUpdate(userId, { password: hashedPassword });
