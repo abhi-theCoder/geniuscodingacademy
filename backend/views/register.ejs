@@ -4,8 +4,24 @@
     <title>Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen px-4">
+<body class="bg-gradient-to-r from-green-200 to-emerald-500 flex items-center justify-center min-h-screen px-4">
     <% if (message) { %>
         <div id="alert-box" class="absolute top-4 px-4 py-2 rounded-lg text-white text-center
             <% if (type === 'success') { %> bg-green-500 <% } else { %> bg-red-500 <% } %>">
@@ -13,31 +29,63 @@
         </div>
     <% } %>
 
-    <div class="bg-white px-6 py-8 shadow-lg rounded-lg w-full max-w-lg">
-        <h1 class="text-2xl font-bold text-gray-800 text-center">Register</h1>
+    <div class="bg-white px-6 py-8 shadow-lg rounded-2xl w-full max-w-lg fade-in">
+        <h1 class="text-3xl font-extrabold text-emerald-600 text-center">Register</h1>
         <form action="/register" method="POST" class="mt-4 space-y-4" onsubmit="return validatePassword()">
             <input type="text" name="firstName" placeholder="First Name" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
             <input type="text" name="lastName" placeholder="Last Name" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
             <input type="text" name="username" placeholder="Username" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
             <input type="email" name="email" placeholder="Email" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
-            <input type="password" id="password" name="password" placeholder="Password" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
-            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required 
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+            <div class="relative">
+                <input type="password" id="password" name="password" placeholder="Password" required 
+                class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                <span id="eye1" class="absolute right-4 top-3 cursor-pointer text-gray-500 z-index-100" onclick="togglePassword('password', 'eye1')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7Z"/>
+                    </svg>
+                </span>
+            </div>
+
+            <div class="relative">
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required 
+                class="w-full px-4 py-3 border border-green-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-400">
+                <span id="eye2" class="absolute right-4 top-3 cursor-pointer text-gray-500 z-index-100" onclick="togglePassword('confirmPassword', 'eye2')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7Z"/>
+                    </svg>
+                </span>
+            </div>
+
             <p id="error" class="text-red-500 text-sm mt-1 hidden">Passwords do not match</p>
             <button type="submit" 
-                class="w-full bg-green-500 text-white py-3 rounded-lg text-lg hover:bg-green-600">Register</button>
+                class="w-full bg-emerald-600 text-white py-3 rounded-lg text-lg hover:bg-emerald-700">Register</button>
         </form>
         <div class="text-center mt-4">
-            <a href="/login" class="text-blue-500 hover:underline">Already have an account? Login</a>
+            <a href="/login" class="text-emerald-500 hover:underline">Already have an account? Login</a>
         </div>
     </div>
 
     <script>
+        //To toggle password
+        function togglePassword(inputId, eyeId) {
+            let inputField = document.getElementById(inputId);
+            let eyeIcon = document.getElementById(eyeId);
+        
+            if (inputField.type === "password") {
+                inputField.type = "text";
+                eyeIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-closed"><path d="m15 18-.722-3.25"/><path d="M2 8a10.645 10.645 0 0 0 20 0"/><path d="m20 15-1.726-2.05"/><path d="m4 15 1.726-2.05"/><path d="m9 18 .722-3.25"/></svg>`; // Closed eye icon
+            } else {
+                inputField.type = "password";
+                eyeIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.636-7 10-7 10 7 10 7-3.636 7-10 7-10-7-10-7Z"/></svg>`; // Open eye icon
+            }
+        }
+
         function validatePassword() {
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirmPassword").value;
