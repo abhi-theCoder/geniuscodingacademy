@@ -57,6 +57,12 @@ app.post("/register", async (req, res) => {
         return res.render("register", { message: "Username already exists", type: "error" });
       }
 
+      // Check if the username is already taken
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        return res.render("register", { message: "Email already exists", type: "error" });
+      }
+
       // Check if the passwords match
       if (password !== confirmPassword) {
           return res.render("register", { message: "Passwords do not match", type: "error" });
