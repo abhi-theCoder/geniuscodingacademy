@@ -10,7 +10,20 @@
                 left: 260px; /* Adjust based on sidebar width */
                 width: calc(100% - 260px);
             }
+            .main-content {
+                margin-left: 15%;
+            }
         }
+        #sidebar {
+            width: 250px; /* Set a fixed width */
+            position: fixed; /* Keeps it fixed in place */ 
+            top: 0; /* Align to the top */
+            left: 0; /* Align to the left */
+            height: 100vh; /* Full viewport height */
+
+        }
+        
+        
     </style>
 </head>
 <body class="bg-gray-100 flex text-gray-900">
@@ -54,7 +67,7 @@
     <!-- Main Content -->
     <canvas id="canvas3D" class="absolute top-0 left-0 w-full h-full -z-10"></canvas>
 
-    <div class="flex-1 flex flex-col items-center justify-center p-6 md:ml-15 transition-all min-h-screen">
+    <div class="main-content flex-1 flex flex-col items-center justify-center p-6 md:ml-15 transition-all min-h-screen ml-50px">
         <div class="w-full max-w-3xl mb-20">
             <% if (message) { %>
                 <div id="alert-box" class="mt-4 text-center px-4 py-2 rounded-lg text-white bg-green-500"><%= message %></div>
@@ -179,6 +192,14 @@
                 sidebar.classList.add("-translate-x-full");
             }
         }
+
+        document.addEventListener("click", (event) => {
+            let animateBtn = document.querySelector('.animate-pulse');
+            if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target) && !animateBtn .contains(event.target)) {
+                sidebar.classList.add("-translate-x-full");
+            }
+        });
+        
         document.querySelector(".animate-pulse").addEventListener("click", () => {
             showContent('home'); // Show home content
             sidebar.classList.remove("-translate-x-full"); // Open sidebar
@@ -196,7 +217,7 @@
         closeSidebar.addEventListener("click", () => {
             sidebar.classList.add("-translate-x-full");
         });
-        
+
         // Hide sidebar on item click (for mobile)
         sidebarLinks.forEach(link => {
             link.addEventListener("click", () => {

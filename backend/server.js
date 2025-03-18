@@ -246,7 +246,7 @@ app.post('/deleteClassNote/:id', async (req, res) => {
 app.get("/update-profile", async (req, res) => {
   return res.redirect("/dashboard");
 })
-
+ 
 // Update profile 
 app.post("/update-profile", async (req, res) => {
   try {
