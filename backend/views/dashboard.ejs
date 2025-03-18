@@ -178,6 +178,8 @@
 <div id="pdfModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
     <div class="bg-white p-6 rounded-lg shadow-lg w-[80%] h-[80%] relative">
         <button onclick="closePDF()" class="absolute top-9 right-8 bg-red-500 text-white px-4 py-2 rounded">✖</button>
+         <!-- Full-Screen Button -->
+         <button onclick="toggleFullScreen()" class="absolute top-4 left-4 bg-blue-500 text-white px-4 py-2 rounded">🔍Full Screen</button>
         <iframe id="pdfViewer" src="" class="w-full h-full border-none"></iframe>
     </div>
 </div>
@@ -249,6 +251,17 @@
         function closePDF() {
             document.getElementById("pdfModal").classList.add("hidden");
             document.getElementById("pdfViewer").src = ""; // Reset src to stop loading
+        }
+
+        function toggleFullScreen() {
+            let modal = document.getElementById("pdfModal");
+            if (!document.fullscreenElement) {
+                modal.requestFullscreen().catch(err => {
+                    console.log("Error trying to enable full-screen mode:", err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
         }
     </script>
 <!-- Threejs -->
