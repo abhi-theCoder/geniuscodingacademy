@@ -100,7 +100,7 @@
             const role = document.getElementById('role').value;
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const security_code = document.getElementById('security_code')?.value;
+            const SECURITY_CODE = document.getElementById('security_code')?.value;
 
             const alertBox = document.getElementById("alert-box");
             alertBox.classList.add("hidden");
@@ -109,7 +109,7 @@
                 const response = await fetch(`${window.API_BASE_URL}/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role, username, password, security_code })
+                    body: JSON.stringify({ role, username, password, SECURITY_CODE })
                 });
 
                 const data = await response.json();
