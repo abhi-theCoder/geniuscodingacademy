@@ -1,4 +1,4 @@
-require("dotenv").config({ path: "./.env" });
+require("dotenv").config({ path: require('path').join(__dirname, ".env") });
 const express = require("express");
 const path = require("path");
 const bcrypt = require("bcryptjs");
@@ -160,7 +160,10 @@ app.post('/addClassNote', checkAuth, async (req, res) => {
     const newNote = new ClassNote(req.body);
     await newNote.save();
     res.status(201).json({ message: "Note added" });
-  } catch (err) { res.status(500).json({ message: "Error" }); }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error" });
+  }
 });
 
 app.post('/editClassNote/:id', checkAuth, async (req, res) => {
@@ -176,6 +179,17 @@ app.post('/deleteClassNote/:id', checkAuth, async (req, res) => {
   try {
     await ClassNote.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Note deleted" });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
+});
+
+app.post('/api/admin/toggle-lock-note/:id', checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const note = await ClassNote.findById(req.params.id);
+    if (!note) return res.status(404).json({ message: "Note not found" });
+    note.locked = !note.locked;
+    await note.save();
+    res.status(200).json({ message: "Lock status updated", locked: note.locked });
   } catch (err) { res.status(500).json({ message: "Error" }); }
 });
 

@@ -8,36 +8,109 @@
     <script src="config.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-</head>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .sidebar-gradient-active {
+            background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .logout-gradient {
+            background: linear-gradient(90deg, #ec4899 0%, #ef4444 100%);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .sidebar-bg {
+            background-color: #111827;
+        }
+
+        /* Nav item hover */
+        .nav-item:hover:not(.sidebar-gradient-active) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
 
 
-<body class="bg-gray-100 flex min-h-screen">
+<body class="bg-gray-100 flex min-h-screen relative">
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuBtn"
+        class="md:hidden fixed top-4 left-4 bg-gray-800 text-white p-2 h-10 w-10 text-2xl rounded-lg flex items-center justify-center z-40 transition-opacity">☰</button>
+
     <!-- Sidebar -->
-    <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen p-5 space-y-4 fixed md:relative z-50">
-        <h1 class="text-2xl font-bold text-center text-emerald-400">Admin Panel</h1>
-        <nav class="space-y-2">
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('welcome')">🏠
-                Home</a>
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600"
-                onclick="showContent('manageCourses')">🎓 Manage Courses</a>
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('classNotes')">📖
-                Class Notes</a>
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('addNote')">➕ Add
-                Note</a>
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('coupons')">🎟️
-                Manage Coupons</a>
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('manageUsers')">👥
-                Manage Users</a>
-            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('manageOrders')">📦
-                Orders</a>
-            <a href="./dashboard.html" class="block p-2 bg-blue-600 rounded hover:bg-blue-500">🏠 User Dashboard</a>
-            <button onclick="logout()"
-                class="w-full text-left p-2 bg-red-600 rounded hover:bg-red-500 mt-4">Logout</button>
+    <div id="sidebar"
+        class="bg-gray-900 text-white w-64 min-h-screen p-6 space-y-4 fixed md:relative z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out border-r border-white/5 flex flex-col">
+
+        <!-- Sidebar Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-3">
+                <a href="./index.html" class="block transition-transform hover:scale-110">
+                    <img src="images/logo1.png" alt="Logo" style="height: 40px; width: 40px;">
+                </a>
+                <h1 class="text-xl font-bold tracking-tight text-emerald-400">Admin Panel</h1>
+            </div>
+            <button id="closeSidebarBtn"
+                class="md:hidden text-white/70 p-2 h-10 w-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 hover:text-white transition-all">✖</button>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="flex-1 space-y-1.5 overflow-y-auto pr-2 custom-scrollbar">
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('welcome', this)">
+                <span class="text-lg">🏠</span>
+                <span class="font-medium">Home</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('manageCourses', this)">
+                <span class="text-lg">🎓</span>
+                <span class="font-medium">Manage Courses</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('classNotes', this)">
+                <span class="text-lg">📖</span>
+                <span class="font-medium">Class Notes</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('addNote', this)">
+                <span class="text-lg">➕</span>
+                <span class="font-medium">Add Note</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('coupons', this)">
+                <span class="text-lg">🎟️</span>
+                <span class="font-medium">Manage Coupons</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('manageUsers', this)">
+                <span class="text-lg">👥</span>
+                <span class="font-medium">Manage Users</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('manageOrders', this)">
+                <span class="text-lg">📦</span>
+                <span class="font-medium">Orders</span>
+            </a>
         </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="mt-auto pt-6 space-y-3">
+            <a href="./dashboard.html"
+                class="flex items-center justify-center gap-2 p-3 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30 hover:bg-blue-600/30 transition-all font-semibold">
+                <span>🏠</span> User Dashboard
+            </a>
+            <button onclick="logout()"
+                class="w-full logout-gradient text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all">
+                <span>🔄</span> Logout
+            </button>
+        </div>
     </div>
 
     <!-- Main Content -->
-    <div class="flex-1 p-6 overflow-y-auto ml-0 md:ml-0">
+    <div class="flex-1 p-4 md:p-6 overflow-y-auto">
         <div class="bg-white p-6 shadow-lg rounded-lg max-w-5xl mx-auto">
 
             <!-- Welcome Section -->
@@ -199,7 +272,36 @@
                 window.location.href = './login.html';
                 return;
             }
+
+            // Mobile Sidebar Toggle Logic
+            const sidebar = document.getElementById('sidebar');
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            const closeBtn = document.getElementById('closeSidebarBtn');
+
+            if (mobileBtn && closeBtn && sidebar) {
+                mobileBtn.addEventListener('click', () => {
+                    sidebar.classList.remove('-translate-x-full');
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                });
+
+                // Close sidebar when clicking a nav link on mobile
+                document.querySelectorAll('#sidebar nav a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth < 768) {
+                            sidebar.classList.add('-translate-x-full');
+                        }
+                    });
+                });
+            }
+
             fetchAdminData();
+
+            // Set default active state
+            const welcomeNav = document.querySelector('.nav-item');
+            if (welcomeNav) welcomeNav.classList.add('sidebar-gradient-active');
         });
 
         async function fetchAdminData() {
@@ -418,9 +520,14 @@
                             <h3 class="text-xl font-bold text-indigo-700">🚀 Day ${note.day}</h3>
                             <p class="text-[10px] text-gray-400 uppercase font-bold italic">📍 ${courseName}</p>
                         </div>
-                        <div class="flex gap-2 pointer-events-auto">
-                            <button onclick="editNote('${note._id}')" class="text-blue-500">✏️</button>
-                            <button onclick="deleteNote('${note._id}')" class="text-red-500">🗑️</button>
+                        <div class="flex gap-4 pointer-events-auto items-center">
+                            <button onclick="toggleNoteLock('${note._id}')" 
+                                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold transition-all border ${note.locked ? 'bg-red-50 text-red-600 border-red-200' : 'bg-green-50 text-green-600 border-green-200'}" 
+                                    title="${note.locked ? 'Unlock Note' : 'Lock Note'}">
+                                ${note.locked ? '🔓 Unlock' : '🔒 Lock'}
+                            </button>
+                            <button onclick="editNote('${note._id}')" class="text-blue-500 hover:scale-110 transition">✏️</button>
+                            <button onclick="deleteNote('${note._id}')" class="text-red-500 hover:scale-110 transition">🗑️</button>
                         </div>
                     </div>
                     <p class="text-gray-700 text-sm mt-2 font-medium line-clamp-2">${note.notes}</p>
@@ -506,9 +613,15 @@
         }
 
         // --- Standard helpers ---
-        function showContent(section) {
+        function showContent(section, element) {
             document.querySelectorAll('.content-section').forEach(div => div.classList.add('hidden'));
-            document.getElementById(section).classList.remove('hidden');
+            const target = document.getElementById(section);
+            if (target) target.classList.remove('hidden');
+
+            if (element) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('sidebar-gradient-active'));
+                element.classList.add('sidebar-gradient-active');
+            }
         }
 
         function logout() { localStorage.clear(); window.location.href = './index.html'; }
@@ -593,6 +706,19 @@
             const endpoint = id ? `/editClassNote/${id}` : '/addClassNote';
             try { const res = await fetch(`${window.API_BASE_URL}${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) }); if (res.ok) { resetNoteForm(); fetchAdminData(); showContent('classNotes'); } } catch (err) { }
         };
+
+        async function toggleNoteLock(id) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/admin/toggle-lock-note/${id}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    fetchAdminData();
+                }
+            } catch (err) { alert('Toggle lock failed'); }
+        }
 
         async function deleteNote(id) { if (confirm('Delete?')) { const token = localStorage.getItem('token'); await fetch(`${window.API_BASE_URL}/deleteClassNote/${id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminData(); } }
         function openPDF(link) { document.getElementById("pdfViewer").src = link; document.getElementById("pdfViewerContainer").classList.remove("hidden"); }
