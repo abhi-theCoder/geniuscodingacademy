@@ -82,7 +82,7 @@ app.post("/login", async (req, res) => {
     if (user && (await bcrypt.compare(password, user.password))) {
       let finalRole = "user";
       if (role === 'admin') {
-        if (req.body.security_code != process.env.security_code) {
+        if (req.body.SECURITY_CODE != process.env.SECURITY_CODE) {
           return res.status(401).json({ message: "Wrong security code" });
         }
         finalRole = "admin";
