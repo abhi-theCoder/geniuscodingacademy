@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Dashboard - Genius Coding Academy</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</head>
+
+
+<body class="bg-gray-100 flex min-h-screen">
+    <!-- Sidebar -->
+    <div id="sidebar" class="bg-gray-800 text-white w-64 min-h-screen p-5 space-y-4 fixed md:relative z-50">
+        <h1 class="text-2xl font-bold text-center text-emerald-400">Admin Panel</h1>
+        <nav class="space-y-2">
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('welcome')">🏠
+                Home</a>
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600"
+                onclick="showContent('manageCourses')">🎓 Manage Courses</a>
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('classNotes')">📖
+                Class Notes</a>
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('addNote')">➕ Add
+                Note</a>
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('coupons')">🎟️
+                Manage Coupons</a>
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('manageUsers')">👥
+                Manage Users</a>
+            <a href="#" class="block p-2 bg-gray-700 rounded hover:bg-gray-600" onclick="showContent('manageOrders')">📦
+                Orders</a>
+            <a href="./dashboard.html" class="block p-2 bg-blue-600 rounded hover:bg-blue-500">🏠 User Dashboard</a>
+            <button onclick="logout()"
+                class="w-full text-left p-2 bg-red-600 rounded hover:bg-red-500 mt-4">Logout</button>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-6 overflow-y-auto ml-0 md:ml-0">
+        <div class="bg-white p-6 shadow-lg rounded-lg max-w-5xl mx-auto">
+
+            <!-- Welcome Section -->
+            <section id="welcome"
+                class="content-section text-center p-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-lg">
+                <h1 class="text-4xl font-extrabold drop-shadow-md">Welcome, Admin! 🎉</h1>
+                <p class="mt-3 text-lg text-blue-100">Full control over courses, users, and orders.</p>
+            </section>
+
+            <!-- Manage Courses Section -->
+            <section id="manageCourses" class="content-section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-indigo-700">Course Management</h2>
+                    <button onclick="openCourseForm()"
+                        class="bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-600">+ Add New
+                        Course</button>
+                </div>
+
+                <!-- Course Form (Add/Edit) -->
+                <div id="courseFormContainer" class="hidden bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8">
+                    <h3 id="courseFormTitle" class="text-xl font-bold mb-4">Add New Course</h3>
+                    <form id="courseForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="hidden" id="editCourseId">
+                        <input type="text" id="course-title" placeholder="Course Title" required
+                            class="border p-2 rounded">
+                        <input type="number" id="course-price" placeholder="Price (₹)" required
+                            class="border p-2 rounded">
+                        <input type="text" id="course-image" placeholder="Image URL (e.g. images/java.png)" required
+                            class="border p-2 rounded">
+                        <select id="course-category" class="border p-2 rounded">
+                            <option value="School">School</option>
+                            <option value="College">College</option>
+                        </select>
+                        <textarea id="course-description" placeholder="Description" required
+                            class="border p-2 rounded md:col-span-2 h-24"></textarea>
+                        <div class="md:col-span-2 flex gap-2">
+                            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded font-bold">Save
+                                Course</button>
+                            <button type="button" onclick="closeCourseForm()"
+                                class="bg-gray-400 text-white px-6 py-2 rounded">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="courses-admin-list" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Dynamic Courses -->
+                </div>
+            </section>
+
+            <!-- Class Notes Section -->
+            <section id="classNotes" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-indigo-700 text-center mb-4">Class Notes</h2>
+                <div class="flex justify-center mb-6">
+                    <select id="admin-note-filter" onchange="renderNotes()"
+                        class="border p-2 rounded-lg text-sm font-semibold bg-white shadow-sm w-full max-w-xs">
+                        <option value="">All Courses - Show Everything</option>
+                        <!-- Courses populated dynamically -->
+                    </select>
+                </div>
+                <div id="notes-admin-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+            </section>
+
+            <!-- Add/Edit Note Form -->
+            <section id="addNote" class="mt-6 content-section hidden">
+                <h2 id="noteFormTitle" class="text-2xl font-bold text-gray-800 text-center mb-4">Add Class Note</h2>
+                <form id="addNoteForm" class="bg-blue-50 p-6 rounded-xl border border-blue-200 space-y-4">
+                    <input type="hidden" id="editNoteId">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="number" id="note-day" name="day" placeholder="Day Number" required
+                            class="border p-3 rounded-lg w-full">
+                        <input type="text" id="note-pdfLink" name="pdfLink" placeholder="PDF Link"
+                            class="border p-3 rounded-lg w-full">
+                        <select id="note-course" name="course" required class="border p-3 rounded-lg w-full">
+                            <option value="">Select Course</option>
+                            <!-- Courses populated dynamically -->
+                        </select>
+                    </div>
+
+                    <textarea id="note-notes" name="notes" placeholder="Notes..." required
+                        class="border p-3 rounded-lg w-full h-32"></textarea>
+                    <textarea id="note-homework" name="homework" placeholder="Homework..." required
+                        class="border p-3 rounded-lg w-full h-24"></textarea>
+                    <div class="flex gap-4">
+                        <button type="submit" id="noteSubmitBtn"
+                            class="bg-emerald-500 text-white py-3 px-6 rounded-lg flex-1 font-bold">Save Note</button>
+                        <button type="button" onclick="resetNoteForm(); showContent('classNotes');"
+                            class="bg-gray-400 text-white py-3 px-6 rounded-lg font-bold">Cancel</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Coupons Section -->
+            <section id="coupons" class="mt-6 content-section hidden">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-6">Discount Coupons</h2>
+                <form id="addCouponForm" class="flex flex-wrap gap-2 mb-6 bg-indigo-50 p-4 rounded-lg">
+                    <input type="hidden" id="editCouponId">
+                    <input type="text" id="coupon-code" name="code" placeholder="CODE" required
+                        class="border p-2 rounded flex-1 uppercase font-bold">
+                    <input type="number" id="coupon-discount" name="discount" placeholder="%" required
+                        class="border p-2 rounded w-20">
+                    <select id="coupon-course" class="border p-2 rounded flex-1">
+                        <option value="">Apply to All Courses</option>
+                        <!-- Courses populated dynamically -->
+                    </select>
+                    <button type="submit" id="couponSubmitBtn"
+                        class="bg-indigo-600 text-white px-6 py-2 rounded font-bold">Add</button>
+                    <button type="button" id="couponCancelBtn" onclick="resetCouponForm()"
+                        class="hidden bg-gray-400 text-white px-4 py-2 rounded font-bold">Cancel</button>
+                </form>
+
+                <div id="coupons-container" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+            </section>
+
+            <!-- Manage Users -->
+            <section id="manageUsers" class="mt-6 content-section hidden">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-6 text-center">User & Course Access</h2>
+                <div id="users-admin-container" class="space-y-6"></div>
+            </section>
+
+            <!-- Orders Section -->
+            <section id="manageOrders" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-6 text-center">Purchase Orders</h2>
+                <div id="orders-admin-container" class="overflow-x-auto bg-white rounded-lg border shadow-sm">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-gray-50 uppercase text-xs font-bold text-gray-600 border-b">
+                            <tr>
+                                <th class="px-4 py-3">User</th>
+                                <th class="px-4 py-3">Courses</th>
+                                <th class="px-4 py-3">Amount</th>
+                                <th class="px-4 py-3">Date</th>
+                                <th class="px-4 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-list-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdfViewerContainer"
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-[100]">
+        <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-4xl h-[90%] relative">
+            <button onclick="closePDF()"
+                class="absolute -top-4 -right-4 bg-red-500 text-white w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-lg">✖</button>
+            <iframe id="pdfViewer" src="" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+
+    <script>
+        let cachedData = {};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
+            if (!user || user.role !== 'admin') {
+                window.location.href = './login.html';
+                return;
+            }
+            fetchAdminData();
+        });
+
+        async function fetchAdminData() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/admin-data`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) return logout();
+
+                cachedData = await response.json();
+                renderAll();
+            } catch (err) { alert('Sync failed'); }
+        }
+
+        function renderAll() {
+            renderCourses();
+            renderNotes();
+            renderCoupons();
+            renderUsers();
+            renderOrders();
+            renderCourseSelects();
+        }
+
+        function renderCourseSelects() {
+            const couponSelect = document.getElementById('coupon-course');
+            const noteSelect = document.getElementById('note-course');
+            const adminNoteFilter = document.getElementById('admin-note-filter');
+
+            const currentCouponVal = couponSelect.value;
+            const currentNoteVal = noteSelect.value;
+            const currentFilterVal = adminNoteFilter.value;
+
+            couponSelect.innerHTML = '<option value="">Apply to All Courses</option>';
+            noteSelect.innerHTML = '<option value="">Select Course</option>';
+            adminNoteFilter.innerHTML = '<option value="">All Courses - Show Everything</option>';
+
+            cachedData.courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c._id;
+                opt.textContent = c.title;
+                couponSelect.appendChild(opt);
+
+                const opt2 = opt.cloneNode(true);
+                noteSelect.appendChild(opt2);
+
+                const opt3 = opt.cloneNode(true);
+                adminNoteFilter.appendChild(opt3);
+            });
+
+            couponSelect.value = currentCouponVal;
+            noteSelect.value = currentNoteVal;
+            adminNoteFilter.value = currentFilterVal;
+        }
+
+
+
+        // --- COURSES ---
+        function renderCourses() {
+            const container = document.getElementById('courses-admin-list');
+            container.innerHTML = '';
+            cachedData.courses.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'border p-4 rounded-xl bg-white shadow-sm flex flex-col items-center text-center';
+                div.innerHTML = `
+                    <img src="${c.image}" class="w-20 h-20 object-cover rounded mb-2">
+                    <h4 class="font-bold text-indigo-800">${c.title}</h4>
+                    <p class="text-sm font-bold text-gray-500">₹${c.price} (${c.category})</p>
+                    <div class="flex gap-2 mt-4">
+                        <button onclick="editCourse('${c._id}')" class="bg-blue-100 text-blue-600 p-1 px-3 rounded text-xs font-bold">Edit</button>
+                        <button onclick="deleteCourse('${c._id}')" class="bg-red-100 text-red-600 p-1 px-3 rounded text-xs font-bold">Delete</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function openCourseForm() {
+            document.getElementById('courseFormContainer').classList.remove('hidden');
+            document.getElementById('editCourseId').value = '';
+            document.getElementById('courseForm').reset();
+            document.getElementById('courseFormTitle').innerText = 'Add New Course';
+        }
+
+        function closeCourseForm() {
+            document.getElementById('courseFormContainer').classList.add('hidden');
+        }
+
+        function editCourse(id) {
+            const c = cachedData.courses.find(x => x._id === id);
+            if (!c) return;
+            openCourseForm();
+            document.getElementById('editCourseId').value = c._id;
+            document.getElementById('course-title').value = c.title;
+            document.getElementById('course-price').value = c.price;
+            document.getElementById('course-image').value = c.image;
+            document.getElementById('course-category').value = c.category;
+            document.getElementById('course-description').value = c.description;
+            document.getElementById('courseFormTitle').innerText = 'Edit Course';
+        }
+
+        document.getElementById('courseForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const id = document.getElementById('editCourseId').value;
+            const body = {
+                title: document.getElementById('course-title').value,
+                price: Number(document.getElementById('course-price').value),
+                image: document.getElementById('course-image').value,
+                category: document.getElementById('course-category').value,
+                description: document.getElementById('course-description').value,
+            };
+
+            const endpoint = id ? `/api/admin/edit-course/${id}` : '/api/admin/courses';
+            try {
+                const res = await fetch(`${window.API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) { closeCourseForm(); fetchAdminData(); }
+            } catch (err) { console.error(err); }
+        };
+
+        async function deleteCourse(id) {
+            if (!confirm('Delete course?')) return;
+            const token = localStorage.getItem('token');
+            try {
+                await fetch(`${window.API_BASE_URL}/api/admin/delete-course/${id}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                fetchAdminData();
+            } catch (err) { console.error(err); }
+        }
+
+        // --- USERS ---
+        function renderUsers() {
+            const container = document.getElementById('users-admin-container');
+            container.innerHTML = '';
+            cachedData.users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'border bg-white p-5 rounded-xl shadow-sm';
+                let courseAccessHtml = '';
+
+                if (u.purchasedCourses && u.purchasedCourses.length > 0) {
+                    courseAccessHtml = '<div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">';
+                    u.purchasedCourses.forEach(ca => {
+                        const courseName = ca.course ? ca.course.title : 'Deleted Course';
+                        const courseId = ca.course ? ca.course._id : null;
+                        const isLocked = ca.status === 'locked';
+                        const statusToSet = isLocked ? 'approved' : 'locked';
+                        courseAccessHtml += `
+                            <div class="flex items-center justify-between bg-gray-50 p-2 rounded border">
+                                <span class="text-sm font-semibold">${courseName}</span>
+                                <div class="flex gap-2 items-center">
+                                    <span class="text-xs ${isLocked ? 'text-red-500' : 'text-green-500'} font-bold">${ca.status.toUpperCase()}</span>
+                                    <button onclick="updateCourseAccess('${u._id}', '${courseId}', '${statusToSet}')" 
+                                            class="bg-white border px-2 py-1 rounded text-[10px] font-bold shadow-sm hover:bg-gray-100">
+                                        ${isLocked ? '🔓 Unlock' : '🔒 Lock'}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    courseAccessHtml += '</div>';
+                }
+
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg">${u.firstName} ${u.lastName} (@${u.username})</h3>
+                            <p class="text-gray-500 text-sm">${u.email}</p>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                           <!-- Global Access Removed -->
+                        </div>
+                    </div>
+                    ${courseAccessHtml || '<p class="text-xs italic text-gray-400 mt-2">No individual courses purchased yet.</p>'}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function updateCourseAccess(userId, courseId, status) {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${window.API_BASE_URL}/updateAccess`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ userId, courseId, status })
+                });
+                if (res.ok) fetchAdminData();
+            } catch (err) { console.error(err); }
+        }
+
+        // --- NOTES, COUPONS, ORDERS helpers remain same logic ---
+        function renderNotes() {
+            const container = document.getElementById('notes-admin-container');
+            const filterVal = document.getElementById('admin-note-filter').value;
+            container.innerHTML = '';
+
+            const filteredNotes = filterVal
+                ? cachedData.classnotes.filter(n => (n.course && n.course._id) === filterVal || n.course === filterVal)
+                : cachedData.classnotes;
+
+            filteredNotes.forEach(note => {
+                const courseName = note.course ? note.course.title : 'No Course';
+                const div = document.createElement('div');
+                div.dataset.id = note._id;
+                div.className = 'bg-gray-50 border p-4 rounded-xl shadow-sm hover:shadow-md transition cursor-move';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start pointer-events-none">
+                        <div>
+                            <h3 class="text-xl font-bold text-indigo-700">🚀 Day ${note.day}</h3>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold italic">📍 ${courseName}</p>
+                        </div>
+                        <div class="flex gap-2 pointer-events-auto">
+                            <button onclick="editNote('${note._id}')" class="text-blue-500">✏️</button>
+                            <button onclick="deleteNote('${note._id}')" class="text-red-500">🗑️</button>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 text-sm mt-2 font-medium line-clamp-2">${note.notes}</p>
+                `;
+
+                container.appendChild(div);
+            });
+            initSortable();
+        }
+
+        function initSortable() {
+            const container = document.getElementById('notes-admin-container');
+            if (!container) return;
+
+            // Destroy existing instance if any
+            if (window.notesSortable) window.notesSortable.destroy();
+
+            window.notesSortable = new Sortable(container, {
+                animation: 150,
+                ghostClass: 'bg-indigo-100',
+                onEnd: async () => {
+                    const orderList = Array.from(container.children).map((el, index) => ({
+                        id: el.dataset.id,
+                        order: index
+                    }));
+
+                    // Sync to backend
+                    const token = localStorage.getItem('token');
+                    try {
+                        await fetch(`${window.API_BASE_URL}/api/admin/reorder-notes`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ orderList })
+                        });
+                        // Update local cache to match new order (optional but cleaner)
+                        fetchAdminData();
+                    } catch (err) { console.error('Sort sync failed', err); }
+                }
+            });
+        }
+
+
+        function renderCoupons() {
+            const container = document.getElementById('coupons-container');
+            container.innerHTML = '';
+            cachedData.coupons.forEach(c => {
+                const courseName = c.course ? c.course.title : "All Courses";
+                const div = document.createElement('div');
+                div.className = 'bg-white border p-3 rounded-lg flex flex-col shadow-sm';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="bg-indigo-100 text-indigo-700 font-bold px-2 py-1 rounded text-sm">${c.code}</span> 
+                            <span class="ml-2 font-bold text-emerald-600">-${c.discount}%</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editCoupon('${c._id}')" class="text-blue-500 hover:scale-110">✏️</button>
+                            <button onclick="deleteCoupon('${c._id}')" class="text-red-500 hover:scale-110">🗑️</button>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold italic">📍 ${courseName}</p>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+
+        function renderOrders() {
+            const body = document.getElementById('orders-list-body');
+            body.innerHTML = '';
+            cachedData.orders.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="px-4 py-3"><b>${o.user ? o.user.username : 'Deleted'}</b><br><small>${o.user ? o.user.email : ''}</small></td>
+                    <td class="px-4 py-3">${o.courses.map(c => c.title).join(', ')}</td>
+                    <td class="px-4 py-3 font-bold">₹${o.finalAmount}</td>
+                    <td class="px-4 py-3 text-xs opacity-60">${new Date(o.createdAt).toLocaleDateString()}</td>
+                    <td class="px-4 py-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-extrabold uppercase">${o.status}</span></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        // --- Standard helpers ---
+        function showContent(section) {
+            document.querySelectorAll('.content-section').forEach(div => div.classList.add('hidden'));
+            document.getElementById(section).classList.remove('hidden');
+        }
+
+        function logout() { localStorage.clear(); window.location.href = './index.html'; }
+
+        // Existing note/coupon logic from previous version...
+        async function updateAccess(userId, access) {
+            const token = localStorage.getItem('token');
+            try { await fetch(`${window.API_BASE_URL}/updateAccess`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ userId, access }) }); fetchAdminData(); } catch (err) { }
+        }
+
+        document.getElementById('addCouponForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const id = document.getElementById('editCouponId').value;
+            const body = {
+                code: document.getElementById('coupon-code').value.toUpperCase(),
+                discount: document.getElementById('coupon-discount').value,
+                course: document.getElementById('coupon-course').value || null
+            };
+
+            const endpoint = id ? `/api/admin/edit-coupon/${id}` : '/api/admin/coupons';
+            try {
+                await fetch(`${window.API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                resetCouponForm();
+                fetchAdminData();
+            } catch (err) { }
+        };
+
+        function editCoupon(id) {
+            const c = cachedData.coupons.find(x => x._id === id);
+            if (!c) return;
+            document.getElementById('editCouponId').value = c._id;
+            document.getElementById('coupon-code').value = c.code;
+            document.getElementById('coupon-discount').value = c.discount;
+            document.getElementById('coupon-course').value = c.course ? c.course._id : "";
+            document.getElementById('couponSubmitBtn').innerText = 'Update';
+            document.getElementById('couponCancelBtn').classList.remove('hidden');
+        }
+
+        function resetCouponForm() {
+            document.getElementById('addCouponForm').reset();
+            document.getElementById('editCouponId').value = '';
+            document.getElementById('couponSubmitBtn').innerText = 'Add';
+            document.getElementById('couponCancelBtn').classList.add('hidden');
+        }
+
+
+        async function deleteCoupon(id) {
+            const token = localStorage.getItem('token');
+            if (confirm('Delete?')) { await fetch(`${window.API_BASE_URL}/api/admin/delete-coupon/${id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminData(); }
+        }
+
+        function editNote(id) {
+            const n = cachedData.classnotes.find(x => x._id === id);
+            if (!n) return;
+            document.getElementById('editNoteId').value = n._id;
+            document.getElementById('note-day').value = n.day;
+            document.getElementById('note-notes').value = n.notes;
+            document.getElementById('note-homework').value = n.homework;
+            document.getElementById('note-pdfLink').value = n.pdfLink || '';
+            document.getElementById('note-course').value = n.course ? (n.course._id || n.course) : '';
+            document.getElementById('noteFormTitle').textContent = 'Edit Class Note';
+
+            showContent('addNote');
+        }
+
+        function resetNoteForm() {
+            document.getElementById('addNoteForm').reset();
+            document.getElementById('editNoteId').value = '';
+            document.getElementById('noteFormTitle').textContent = 'Add Class Note';
+        }
+
+        document.getElementById('addNoteForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const id = document.getElementById('editNoteId').value;
+            const body = Object.fromEntries(new FormData(e.target));
+            const endpoint = id ? `/editClassNote/${id}` : '/addClassNote';
+            try { const res = await fetch(`${window.API_BASE_URL}${endpoint}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(body) }); if (res.ok) { resetNoteForm(); fetchAdminData(); showContent('classNotes'); } } catch (err) { }
+        };
+
+        async function deleteNote(id) { if (confirm('Delete?')) { const token = localStorage.getItem('token'); await fetch(`${window.API_BASE_URL}/deleteClassNote/${id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminData(); } }
+        function openPDF(link) { document.getElementById("pdfViewer").src = link; document.getElementById("pdfViewerContainer").classList.remove("hidden"); }
+        function closePDF() { document.getElementById("pdfViewerContainer").classList.add("hidden"); document.getElementById("pdfViewer").src = ""; }
+    </script>
+</body>
+
+</html>

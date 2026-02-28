@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Login - Genius Coding Academy</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dash-hover {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dash-hover::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.4s;
+        }
+
+        .dash-hover:hover::before {
+            left: 100%;
+        }
+
+        .input-focus:focus {
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+            /* Indigo glow */
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gradient-to-r from-blue-50 via-indigo-100 to-purple-100 flex items-center justify-center min-h-screen px-4">
+    <div id="alert-box" class="absolute top-4 px-4 py-2 rounded-lg text-white text-center hidden"></div>
+
+    <div class="bg-white px-8 py-10 shadow-2xl rounded-2xl w-full max-w-md fade-in">
+        <h1 class="text-3xl font-extrabold text-indigo-600 text-center">Welcome Back!</h1>
+        <p class="text-center text-gray-500 mt-2">Please log in to your account</p>
+
+        <form id="loginForm" class="mt-6 space-y-4">
+            <label class="block font-semibold text-gray-700">Login as:</label>
+            <select name="role" id="role" onchange="toggleSecurityCode()"
+                class="w-full px-3 py-2 border border-indigo-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-400 input-focus">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+            </select>
+
+            <input type="text" id="username" name="username" placeholder="Username or Email" required
+                class="w-full px-4 py-3 border border-indigo-300 rounded-lg text-lg focus:outline-none focus:ring focus:ring-indigo-400 input-focus">
+
+            <input type="password" id="password" name="password" placeholder="Password" required
+                class="w-full px-4 py-3 border border-indigo-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-400 input-focus">
+
+            <div id="security-code-container" class="hidden">
+                <input type="password" id="security_code" name="security_code" placeholder="Enter Security Code"
+                    class="w-full px-4 py-3 border border-rose-400 rounded-lg focus:outline-none focus:ring focus:ring-rose-400 input-focus">
+            </div>
+
+            <button type="submit"
+                class="w-full bg-indigo-500 text-white py-3 rounded-lg text-lg dash-hover hover:bg-indigo-600 transition-all">Login</button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="./register.html" class="text-indigo-500 hover:underline">Don't have an account? Register</a>
+            <br>
+            <a href="./index.html" class="text-gray-500 text-sm hover:underline mt-2 inline-block">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // BACKEND URL
+        const BACKEND_URL = ''; // e.g., 'https://your-api.onrender.com'
+
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+
+            const role = document.getElementById('role').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const security_code = document.getElementById('security_code')?.value;
+
+            const alertBox = document.getElementById("alert-box");
+            alertBox.classList.add("hidden");
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role, username, password, security_code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    if (data.user.role === 'admin') {
+                        window.location.href = './admin.html';
+                    } else {
+                        window.location.href = './dashboard.html';
+                    }
+                } else {
+
+                    alertBox.textContent = data.message || "Login failed";
+                    alertBox.classList.remove("hidden", "bg-emerald-400");
+                    alertBox.classList.add("bg-rose-500");
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                alertBox.textContent = "Cannot connect to server";
+                alertBox.classList.remove("hidden");
+                alertBox.classList.add("bg-rose-500");
+            }
+        };
+
+        // Check for URL parameters to show messages (for static feedback)
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const message = urlParams.get('message');
+            const type = urlParams.get('type') || 'success';
+
+            if (message) {
+                const alertBox = document.getElementById("alert-box");
+                alertBox.textContent = message;
+                alertBox.classList.remove("hidden");
+                alertBox.classList.add(type === 'success' ? 'bg-emerald-400' : 'bg-rose-500');
+
+                setTimeout(() => {
+                    alertBox.style.transition = "opacity 1s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.classList.add("hidden"), 1000);
+                }, 3000);
+            }
+        });
+
+        function toggleSecurityCode() {
+            let role = document.getElementById("role").value;
+            let securityCodeContainer = document.getElementById("security-code-container");
+            securityCodeContainer.classList.toggle("hidden", role !== "admin");
+        }
+    </script>
+</body>
+
+</html>

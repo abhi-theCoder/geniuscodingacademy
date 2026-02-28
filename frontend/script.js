@@ -4,27 +4,27 @@ document.querySelectorAll(".scrollbar-hide").forEach(el => {
 });
 
 const menuBtn = document.getElementById('menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const closeBtn = document.getElementById('close-btn');
+const mobileMenu = document.getElementById('mobile-menu');
+const closeBtn = document.getElementById('close-btn');
 
-        function toggleMenu() {
-            mobileMenu.classList.toggle('-translate-x-full');
-        }
+function toggleMenu() {
+    mobileMenu.classList.toggle('-translate-x-full');
+}
 
-        menuBtn.addEventListener('click', toggleMenu);
-        closeBtn.addEventListener('click', toggleMenu);
+menuBtn.addEventListener('click', toggleMenu);
+closeBtn.addEventListener('click', toggleMenu);
 
 //Three.js code
 document.addEventListener("DOMContentLoaded", function () {
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    
-    const renderer = new THREE.WebGLRenderer({ 
-        canvas: document.getElementById("threejs-canvas"), 
-        alpha: true 
+
+    const renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById("threejs-canvas"),
+        alpha: true
     });
-    
+
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     // Particle system
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const particlesMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
     const particles = new THREE.Points(particlesGeometry, particlesMaterial);
     scene.add(particles);
- 
+
     camera.position.z = 5;
 
     // Animation loop
@@ -143,6 +143,74 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
             // Update URL without reloading
             history.pushState(null, null, `#${targetId}`);
+        }
+    });
+});
+
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+function addToCart(courseId, courseName, price, imgSrc, btn) {
+    const isAdded = cart.find(item => item.id === courseId);
+    if (!isAdded) {
+        cart.push({ id: courseId, name: courseName, price, imgSrc });
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
+    if (btn) {
+        btn.textContent = 'View Cart';
+        btn.onclick = () => window.location.href = './cart.html';
+    } else {
+        window.location.href = './cart.html';
+    }
+}
+
+// Auto-update button label if already in cart
+// Check if user is logged in to swap "Login" with "Dashboard"
+window.addEventListener('DOMContentLoaded', () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
+
+    if (user && token) {
+        // Desktop
+        const navLinks = document.getElementById('nav-links');
+        const loginLink = navLinks.querySelector('a[href="./login.html"]');
+        if (loginLink) {
+            loginLink.href = './dashboard.html';
+            loginLink.textContent = 'Dashboard';
+        }
+
+        const joinBtn = document.querySelector('nav > a[href="./register.html"]');
+        if (joinBtn) {
+            joinBtn.href = './dashboard.html';
+            joinBtn.textContent = 'My Account';
+        }
+
+        // Mobile
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLogin = mobileMenu.querySelector('a[href="./login.html"]');
+        if (mobileLogin) {
+            mobileLogin.href = './dashboard.html';
+            mobileLogin.textContent = 'Dashboard';
+        }
+
+        const mobileJoin = mobileMenu.querySelector('a[href="./register.html"]');
+        if (mobileJoin) {
+            mobileJoin.href = './dashboard.html';
+            mobileJoin.textContent = 'My Account';
+        }
+    }
+
+    document.querySelectorAll('button').forEach(btn => {
+        const onClickAttr = btn.getAttribute('onclick');
+        if (onClickAttr && onClickAttr.includes('addToCart')) {
+            const courseMatch = onClickAttr.match(/addToCart\('([^']+)'/);
+            if (courseMatch && cart.find(item => item.name === courseMatch[1])) {
+                btn.textContent = 'View Cart';
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = './cart.html';
+                };
+            }
         }
     });
 });

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - Genius Coding Academy</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        let currentTotal = 0;
+        let discountPercent = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCart();
+        });
+
+        function renderCart() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            currentTotal = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-center text-xl mt-10">Your cart is empty.</p>';
+                document.getElementById('checkout-section').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('checkout-section').classList.remove('hidden');
+
+            cart.forEach((item, index) => {
+                currentTotal += item.price;
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 border-b hover:bg-gray-50 transition';
+                div.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="${item.imgSrc}" class="w-20 h-20 rounded-lg object-cover shadow-sm" alt="${item.name}">
+                        <div>
+                            <span class="text-xl font-bold block text-gray-800">${item.name}</span>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 text-sm font-semibold hover:text-red-700 transition">🗑️ Remove Item</button>
+                        </div>
+                    </div>
+                    <span class="text-xl font-extrabold text-blue-600">₹${item.price}</span>
+                `;
+                container.appendChild(div);
+            });
+
+            updateDisplay();
+        }
+
+        async function applyCoupon() {
+            const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+            const msg = document.getElementById('coupon-msg');
+
+            if (!code) return;
+
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartCourseIds = cart.map(item => item.id);
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/validate-coupon`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, cartCourseIds })
+                });
+
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    discountPercent = data.discount;
+                    msg.textContent = `✅ Coupon Applied! ${discountPercent}% discount.`;
+                    msg.className = "text-green-600 font-bold mt-2";
+                    updateDisplay();
+                } else {
+                    discountPercent = 0;
+                    msg.textContent = "❌ " + (data.message || "Invalid Coupon");
+                    msg.className = "text-red-500 font-bold mt-2";
+                    updateDisplay();
+                }
+            } catch (err) {
+                console.error(err);
+                msg.textContent = "Error validating coupon";
+            }
+        }
+
+        function updateDisplay() {
+            const discountAmount = (currentTotal * discountPercent) / 100;
+            const finalTotal = currentTotal - discountAmount;
+
+            document.getElementById('subtotal').textContent = 'Subtotal: ₹' + currentTotal;
+
+            if (discountPercent > 0) {
+                document.getElementById('discount-row').classList.remove('hidden');
+                document.getElementById('discount-val').textContent = `- ₹${discountAmount.toFixed(0)} (${discountPercent}%)`;
+            } else {
+                document.getElementById('discount-row').classList.add('hidden');
+            }
+
+            document.getElementById('total').textContent = 'Final Total: ₹' + finalTotal.toFixed(0);
+        }
+
+        function removeFromCart(index) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        async function proceedToCheckout() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = './login.html?message=Please login to purchase courses&type=error';
+                return;
+            }
+
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const discountAmount = (currentTotal * discountPercent) / 100;
+            const finalTotal = currentTotal - discountAmount;
+            const couponCode = document.getElementById('coupon-input').value.trim();
+
+            if (finalTotal > 0) {
+                alert("Checkout is only permitted when the final amount is ₹0 (use a 100% discount coupon).");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/checkout`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        courses: cart.map(item => item.id),
+                        totalAmount: currentTotal,
+                        discountAmount: discountAmount,
+                        finalAmount: finalTotal,
+                        couponCode: couponCode
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Purchase successful!');
+                    localStorage.removeItem('cart');
+                    window.location.href = './dashboard.html';
+                } else {
+                    alert(data.message || 'Error during checkout');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection to server failed');
+            }
+        }
+
+    </script>
+</head>
+
+<body class="bg-gray-50 min-h-screen p-4 md:p-10 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+            <h1 class="text-4xl font-extrabold text-gray-900">🛍️ Your Cart</h1>
+            <a href="./index.html"
+                class="bg-white px-6 py-2 rounded-full shadow-sm border text-blue-600 font-bold hover:bg-blue-50 transition">
+                ← Continue Shopping
+            </a>
+        </div>
+
+        <div id="cart-items" class="bg-white shadow-xl rounded-2xl p-6 mb-8">
+            <p class="text-center text-gray-400">Loading your items...</p>
+        </div>
+
+        <div id="checkout-section" class="bg-blue-900 text-white rounded-2xl p-8 shadow-2xl hidden">
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+
+                <!-- Coupon Section -->
+                <div class="bg-blue-800 p-6 rounded-xl border border-blue-700">
+                    <h3 class="font-bold text-lg mb-4">Have a Coupon? 🎟️</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="coupon-input" placeholder="Enter Code"
+                            class="flex-1 p-3 rounded-lg text-gray-900 font-bold uppercase focus:ring-2 focus:ring-yellow-400 outline-none">
+                        <button onclick="applyCoupon()"
+                            class="bg-yellow-400 text-blue-900 px-6 py-3 rounded-lg font-extrabold hover:bg-yellow-300 transition">Apply</button>
+                    </div>
+                    <p id="coupon-msg" class="text-sm mt-2 font-medium opacity-90"></p>
+                </div>
+
+                <!-- Summary Section -->
+                <div class="text-right space-y-2">
+                    <p id="subtotal" class="text-lg opacity-80"></p>
+                    <p id="discount-row" class="text-green-300 font-bold text-lg hidden">Discount: <span
+                            id="discount-val"></span></p>
+                    <p id="total" class="text-4xl font-extrabold text-yellow-400 mt-4"></p>
+                    <button id="checkout-btn" onclick="proceedToCheckout()"
+                        class="mt-6 w-full bg-emerald-500 text-white px-8 py-4 rounded-xl text-xl font-extrabold hover:bg-emerald-600 transition-all transform hover:scale-105 shadow-xl">
+                        Proceed to Checkout 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

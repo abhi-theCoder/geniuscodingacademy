@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard - Genius Coding Academy</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        @media screen and (min-width : 600px) {
+            #pdfModal {
+                left: 260px;
+                width: calc(100% - 260px);
+            }
+
+            .sidebar-fixed {
+                width: 250px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+            }
+
+            .main-content {
+                margin-left: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex text-gray-900 min-h-screen">
+    <div id="auth-check" class="hidden fixed inset-0 bg-white flex items-center justify-center z-[100]">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <p class="mt-4 text-gray-600">Verifying session...</p>
+        </div>
+    </div>
+
+    <!-- Sidebar Toggle Button -->
+    <button id="sidebarToggle"
+        class="fixed top-4 left-4 bg-indigo-500 text-white p-2 h-10 w-10 text-3xl rounded-lg md:hidden flex items-center justify-center z-40">☰</button>
+
+    <!-- Sidebar -->
+    <div id="sidebar"
+        class="sidebar-fixed w-72 md:w-64 h-screen bg-gray-900 text-white flex flex-col p-4 shadow-lg fixed transition-all ease-in-out duration-300 transform -translate-x-full md:translate-x-0 z-50">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-indigo-400">Dashboard</h2>
+            <button id="closeSidebar"
+                class="md:hidden text-white p-2 text-2xl bg-transparent hover:text-gray-300 focus:outline-none">✖</button>
+        </div>
+        <ul class="flex-1">
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" class="block w-full h-full" onclick="showContent('home')">Home</a>
+            </li>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" class="block w-full h-full" onclick="showContent('profile')">Profile</a>
+            </li>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" class="block w-full h-full" onclick="showContent('settings')">Settings</a>
+            </li>
+            <li class="mb-4 p-2 rounded hover:bg-gray-700">
+                <a href="#" class="block w-full h-full" onclick="showContent('my-courses')">My Courses</a>
+            </li>
+
+
+        </ul>
+
+        <div id="admin-link-container" class="hidden mb-4">
+            <a href="./admin.html"
+                class="block text-center bg-purple-700 text-white py-2 rounded-lg hover:bg-purple-600">Admin
+                Dashboard</a>
+        </div>
+
+        <button onclick="logout()" class="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600">Logout</button>
+    </div>
+
+    <!-- Main Content -->
+    <canvas id="canvas3D" class="fixed top-0 left-0 w-full h-full -z-10"></canvas>
+
+    <div class="main-content flex-1 flex flex-col items-center justify-center p-6 transition-all">
+        <div class="w-full max-w-3xl">
+            <div id="alert-box" class="mt-4 text-center px-4 py-2 rounded-lg text-white bg-green-500 hidden mb-4"></div>
+
+            <div id="home" class="content-section">
+                <div class="text-center">
+                    <h1 class="text-3xl font-bold text-indigo-700 mb-4">
+                        Welcome, <span id="display-name">User</span>! 💫
+                    </h1>
+                    <p class="text-lg text-gray-600 italic mb-6">"Every new day is another chance to change your life!"
+                    </p>
+                    <button onclick="showContent('my-courses')"
+                        class="bg-indigo-500 text-white px-6 py-3 rounded-lg text-lg font-semibold shadow-md hover:bg-indigo-600 transition-all">
+                        Go to My Courses →
+                    </button>
+
+                </div>
+            </div>
+
+            <div id="profile" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-center">Profile</h1>
+                <form id="profileForm" class="bg-white p-6 shadow-lg rounded-lg">
+                    <label class="block text-gray-700">First Name:</label>
+                    <input type="text" id="profile-firstName" name="firstName" class="w-full p-2 border rounded mb-2"
+                        required>
+
+                    <label class="block text-gray-700">Last Name:</label>
+                    <input type="text" id="profile-lastName" name="lastName" class="w-full p-2 border rounded mb-2"
+                        required>
+
+                    <label class="block text-gray-700">Username/Email:</label>
+                    <input type="text" id="profile-email" class="w-full p-2 border rounded mb-2 bg-gray-100" readonly>
+
+                    <button type="submit"
+                        class="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 w-full mt-4">Update
+                        Profile</button>
+                </form>
+            </div>
+
+            <div id="settings" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-center">Settings</h1>
+                <form id="passwordForm" class="bg-white p-6 shadow-lg rounded-lg max-w-md mx-auto">
+                    <h2 class="text-xl font-semibold text-indigo-700 mb-4">🔒 Update Password</h2>
+                    <div class="relative mb-4">
+                        <label class="block text-gray-700 font-medium mb-1">New Password:</label>
+                        <input type="password" id="newPassword" class="w-full p-3 border rounded-lg pr-10" required>
+                    </div>
+                    <div class="relative mb-4">
+                        <label class="block text-gray-700 font-medium mb-1">Confirm New Password:</label>
+                        <input type="password" id="confirmPassword" class="w-full p-3 border rounded-lg pr-10" required>
+                    </div>
+                    <p id="passwordError" class="text-red-500 text-sm mb-4 hidden">❌ Passwords do not match</p>
+                    <button type="submit"
+                        class="w-full bg-indigo-500 text-white px-4 py-3 rounded-lg hover:bg-indigo-600 transition-all">Update
+                        Password</button>
+                </form>
+            </div>
+
+            <div id="classnotes" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-center">Class Notes</h1>
+                <div id="notes-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Notes will be injected here -->
+                    <div class="text-center col-span-full">Loading notes...</div>
+                </div>
+                <div class="text-center mt-8">
+                    <button onclick="showContent('my-courses')" class="text-indigo-600 font-bold hover:underline">← Back
+                        to Courses</button>
+                </div>
+            </div>
+
+
+            <div id="my-courses" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-center">My Courses</h1>
+                <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Purchased courses here -->
+                    <div class="text-center col-span-full">Loading your courses...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PDF Modal -->
+    <div id="pdfModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden z-[60]">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-[90%] h-[90%] relative">
+            <button onclick="closePDF()" style="top:36px;right:36px;"
+                class="absolute top-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-10">✖</button>
+            <iframe id="pdfViewer" src="" class="w-full h-full border-none"></iframe>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // BACKEND URL - User should update this
+        const BACKEND_URL = ''; // e.g., 'https://your-api.onrender.com'
+
+        // Auth handling
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = './login.html?message=Please log in first&type=error';
+                return;
+            }
+
+            document.getElementById('display-name').textContent = user.firstName;
+            document.getElementById('profile-firstName').value = user.firstName;
+            document.getElementById('profile-lastName').value = user.lastName;
+            document.getElementById('profile-email').value = user.email || user.username;
+
+            if (user.role === 'admin') {
+                document.getElementById('admin-link-container').classList.remove('hidden');
+            }
+
+            fetchDashboardData();
+            init3D();
+        });
+
+        async function fetchDashboardData() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/dashboard-data`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('user');
+                        window.location.href = './login.html?message=Session expired&type=error';
+                        return;
+                    }
+                    throw new Error('Failed to fetch data');
+                }
+
+                const data = await response.json();
+                const user = data.user;
+                window.allClassNotes = data.classnotes;
+
+                // Update localStorage with latest data (especially access)
+                localStorage.setItem('user', JSON.stringify(user));
+
+                // Populate Purchased Courses
+                const coursesContainer = document.getElementById('courses-container');
+                coursesContainer.innerHTML = '';
+
+
+                if (!user.purchasedCourses || user.purchasedCourses.length === 0) {
+                    coursesContainer.innerHTML = '<div class="text-center col-span-full py-10 bg-white rounded-xl shadow">You haven\'t purchased any courses yet. <br> <a href="./index.html#course" class="text-indigo-600 font-bold hover:underline mt-2 block">Browse Courses →</a></div>';
+                } else {
+                    user.purchasedCourses.forEach(access => {
+                        const course = access.course;
+                        const isLocked = access.status === 'locked';
+                        const div = document.createElement('div');
+                        div.className = 'bg-white rounded-2xl overflow-hidden shadow-lg border-t-4 ' + (isLocked ? 'border-gray-400 grayscale' : 'border-indigo-500');
+                        div.innerHTML = `
+                            <img src="${course.image}" class="w-full h-32 object-cover ${isLocked ? 'opacity-50' : ''}">
+                            <div class="p-5">
+                                <h3 class="font-bold text-xl text-gray-800">${course.title}</h3>
+                                <div class="mt-4 flex justify-between items-center">
+                                    ${isLocked ? `
+                                        <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">🔒 Locked</span>
+                                        <p class="text-xs text-gray-400 italic">Waiting for admin approval</p>
+                                    ` : `
+                                        <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-bold">✅ ${access.status.toUpperCase()}</span>
+                                        <button onclick="filterNotesByCourse('${course._id}')" class="bg-indigo-600 text-white text-sm px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition">Start Learning</button>
+                                    `}
+
+                                </div>
+                            </div>
+                        `;
+                        coursesContainer.appendChild(div);
+                    });
+                }
+
+
+            } catch (err) {
+                console.error('Error fetching dashboard items:', err);
+                document.getElementById('courses-container').innerHTML = '<div class="text-center col-span-full text-red-500">Error connecting to backend API.</div>';
+            }
+        }
+
+        function filterNotesByCourse(courseId) {
+            const container = document.getElementById('notes-container');
+            container.innerHTML = '';
+
+            const filteredNotes = window.allClassNotes.filter(note => {
+                // Check if note.course is an object with _id or just an ID string
+                const noteCourseId = (note.course && note.course._id) ? note.course._id : note.course;
+                return noteCourseId === courseId;
+            });
+
+            if (filteredNotes.length === 0) {
+                container.innerHTML = '<div class="text-center col-span-full py-10">No notes available for this course yet.</div>';
+            } else {
+                filteredNotes.forEach(note => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-4 shadow-lg rounded-lg border border-gray-200';
+                    div.innerHTML = `
+                        <h2 class="text-lg font-bold text-indigo-700">📖 Day ${note.day}</h2>
+                        <p class="mt-2 text-gray-800">${note.notes}</p>
+                        ${note.pdfLink ? `
+                            <button onclick="openPDF('${note.pdfLink}')" 
+                                    class="bg-blue-500 text-white px-3 py-1 mt-3 rounded hover:bg-blue-600 transition">
+                                📄 View PDF
+                            </button>
+                        ` : ''}
+                        <h3 class="text-md font-semibold mt-4 text-indigo-500">📝 Homework</h3>
+                        <p class="text-gray-600">${note.homework}</p>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            showContent('classnotes');
+        }
+
+
+
+        function showContent(section) {
+            document.querySelectorAll('.content-section').forEach(div => div.classList.add('hidden'));
+            const target = document.getElementById(section);
+            if (target) target.classList.remove('hidden');
+
+            if (window.innerWidth < 768) {
+                document.getElementById("sidebar").classList.add("-translate-x-full");
+            }
+        }
+
+        // --- Form Handlers ---
+        document.getElementById('profileForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const firstName = document.getElementById('profile-firstName').value;
+            const lastName = document.getElementById('profile-lastName').value;
+            const alertBox = document.getElementById('alert-box');
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/update-profile`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ firstName, lastName })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    const user = JSON.parse(localStorage.getItem('user'));
+                    user.firstName = firstName;
+                    user.lastName = lastName;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    document.getElementById('display-name').textContent = firstName;
+
+                    alertBox.textContent = data.message;
+                    alertBox.classList.remove('hidden', 'bg-red-500');
+                    alertBox.classList.add('bg-green-500');
+                } else {
+                    alertBox.textContent = data.message;
+                    alertBox.classList.remove('hidden', 'bg-green-500');
+                    alertBox.classList.add('bg-red-500');
+                }
+            } catch (err) {
+                console.error(err);
+                alertBox.textContent = "Error updating profile";
+                alertBox.classList.remove('hidden', 'bg-green-500');
+                alertBox.classList.add('bg-red-500');
+            }
+        };
+
+        document.getElementById('passwordForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorText = document.getElementById('passwordError');
+            const alertBox = document.getElementById('alert-box');
+
+            if (newPassword !== confirmPassword) {
+                errorText.classList.remove('hidden');
+                return;
+            }
+            errorText.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/updatePassword`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ newPassword })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alertBox.textContent = data.message;
+                    alertBox.classList.remove('hidden', 'bg-red-500');
+                    alertBox.classList.add('bg-green-500');
+                    e.target.reset();
+                } else {
+                    alertBox.textContent = data.message;
+                    alertBox.classList.remove('hidden', 'bg-green-500');
+                    alertBox.classList.add('bg-red-500');
+                }
+            } catch (err) {
+                console.error(err);
+                alertBox.textContent = "Error updating password";
+                alertBox.classList.remove('hidden', 'bg-green-500');
+                alertBox.classList.add('bg-red-500');
+            }
+        };
+
+
+        async function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = './index.html';
+        }
+
+
+
+        // Sidebar logic
+        const sidebar = document.getElementById("sidebar");
+        const sidebarToggle = document.getElementById("sidebarToggle");
+        const closeSidebar = document.getElementById("closeSidebar");
+
+        sidebarToggle.addEventListener("click", () => sidebar.classList.toggle("-translate-x-full"));
+        closeSidebar.addEventListener("click", () => sidebar.classList.add("-translate-x-full"));
+
+        function openPDF(pdfLink) {
+            document.getElementById("pdfViewer").src = pdfLink;
+            document.getElementById("pdfModal").classList.remove("hidden");
+        }
+
+        function closePDF() {
+            document.getElementById("pdfModal").classList.add("hidden");
+            document.getElementById("pdfViewer").src = "";
+        }
+
+        // Background 3D Effect
+        let scene, camera, renderer, ring, stars = [];
+        function init3D() {
+            const canvas = document.getElementById("canvas3D");
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.position.z = 6;
+
+            let ringGeometry = new THREE.TorusGeometry(1.5, 0.3, 10, 40);
+            let ringMaterial = new THREE.MeshStandardMaterial({ color: 0x5a67d8, emissive: 0x5a67d8 });
+            ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            scene.add(ring);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6), new THREE.PointLight(0xffffff, 0.8));
+
+            let starGeometry = new THREE.SphereGeometry(0.04, 8, 8);
+            let starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            for (let i = 0; i < 50; i++) {
+                let star = new THREE.Mesh(starGeometry, starMaterial);
+                star.position.set((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+                scene.add(star);
+                stars.push(star);
+            }
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ring.rotation.x += 0.01;
+            ring.rotation.y += 0.015;
+            stars.forEach(s => {
+                s.position.y += 0.01;
+                if (s.position.y > 5) s.position.y = -5;
+            });
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener("resize", () => {
+            if (camera) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+
+</html>

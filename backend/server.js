@@ -1,317 +1,359 @@
 require("dotenv").config({ path: "./.env" });
-
 const express = require("express");
 const path = require("path");
 const bcrypt = require("bcryptjs");
-const session = require("express-session") ;
+const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
+const cors = require('cors');
+
 const connectDB = require("./models/db");
 const User = require("./models/User");
-const ClassNote = require("../backend/models/ClassNote");
-const { access } = require("fs"); 
+const ClassNote = require("./models/ClassNote");
+
+const Coupon = require("./models/Coupon");
+const Course = require("./models/Course");
+const Order = require("./models/Order");
 
 const app = express();
-const PORT = process.env.PORT || 3000;  
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || "genius_coding_academy_secret_key";
 
 // Connect to MongoDB
 connectDB();
- 
-// Middleware
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.use(express.static("../frontend"));
 
-app.use(
-  session({
-    secret: "SESSION_SECRET",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
- 
-// Middleware to check authentication
+// CORS Configuration
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+// Body Parsers
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// JWT Verification Middleware
 const checkAuth = (req, res, next) => {
-  if (!req.session.user) {
-    return res.redirect("/login"); 
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ message: "No token provided", type: "error" });
   }
-  next();
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token", type: "error" });
+  }
 };
 
-// Routes
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "frontend", "index.html"));
-  });
-
-app.get("/register", (req, res) => {
-  res.render("register",{ message:null });
-});
+// --- AUTH ROUTES ---
 
 app.post("/register", async (req, res) => {
   try {
-      const { firstName, lastName, username, email, password, confirmPassword } = req.body;
+    const { firstName, lastName, username, email, password, confirmPassword } = req.body;
+    if (!username || !email || !password) return res.status(400).json({ message: "Missing fields" });
 
-      // Check if the username is already taken
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-        return res.render("register", { message: "Username already exists", type: "error" });
-      }
+    const existingUser = await User.findOne({ username });
+    if (existingUser) return res.status(400).json({ message: "Username exists" });
 
-      // Check if the username is already taken
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
-        return res.render("register", { message: "Email already exists", type: "error" });
-      }
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) return res.status(400).json({ message: "Email exists" });
 
-      // Check if the passwords match
-      if (password !== confirmPassword) {
-          return res.render("register", { message: "Passwords do not match", type: "error" });
-      }
+    if (password !== confirmPassword) return res.status(400).json({ message: "Passwords mismatch" });
 
-      // Hash the password
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Create a new user
-      await User.create({ firstName, lastName, username, email, password: hashedPassword });
-
-      // Redirect to login page with a success message
-      return res.render("login", { message: "Registration successful! Please log in.", type: "success" });
-
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({ firstName, lastName, username, email, password: hashedPassword });
+    return res.status(201).json({ message: "Registration successful!", type: "success" });
   } catch (error) {
-      console.error("Registration Error:", error);
-      res.status(500).send("Internal Server Error");
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
-app.get("/login", async(req, res) => {
-  if(!req.session.user)
-  return res.render("login", {message : null});
-
-  const classnotes = await ClassNote.find();
-  if(req.session.user.role == 'admin')
-  return res.redirect('/admin');
-
-  res.render("dashboard", { user: req.session.user, classnotes, message:null });
-});
- 
 app.post("/login", async (req, res) => {
-  const { role, username, password } = req.body;
+  try {
+    const { role, username, password } = req.body;
+    const user = await User.findOne({ $or: [{ username }, { email: username }] });
 
-  // Find user by username OR email
-  const user = await User.findOne({ $or: [{ username }, { email: username }] });
-  
-  if (user && (await bcrypt.compare(password, user.password))) {
-      req.session.user = {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        email: user.email,
-        access: user.access,
-        role: "user" // Default role
-    };
- 
-    if(role === 'admin'){
-      const {security_code} = req.body; 
-      // console.log(security_code+" "+process.env.security_code);
-      if(security_code != process.env.security_code){
-        return res.render("login",{ message : "Wrong security code entered" , type : "error" });
+    if (user && (await bcrypt.compare(password, user.password))) {
+      let finalRole = "user";
+      if (role === 'admin') {
+        if (req.body.security_code != process.env.security_code) {
+          return res.status(401).json({ message: "Wrong security code" });
+        }
+        finalRole = "admin";
       }
-      else{
-        req.session.user.role = 'admin';
-        return res.redirect('/admin');
+
+      const token = jwt.sign({ id: user._id, role: finalRole, username: user.username }, JWT_SECRET, { expiresIn: "24h" });
+      return res.status(200).json({ token, user: { id: user._id, firstName: user.firstName, lastName: user.lastName, username: user.username, email: user.email, role: finalRole }, message: "Logged in" });
+
+    }
+    res.status(401).json({ message: "Invalid credentials" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// --- PUBLIC DATA ---
+
+app.get("/api/courses", async (req, res) => {
+  try {
+    const courses = await Course.find().sort({ createdAt: -1 });
+    res.status(200).json(courses);
+  } catch (err) { res.status(500).json({ message: "Error" }); }
+});
+
+// --- ADMIN DATA & MANAGEMENT ---
+
+app.get("/api/admin-data", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Denied" });
+  try {
+    const classnotes = await ClassNote.find().populate('course').sort({ order: 1, createdAt: 1 });
+
+
+
+    const users = await User.find().populate('purchasedCourses.course').select("-password");
+
+    const coupons = await Coupon.find().populate('course').sort({ createdAt: -1 });
+
+    const courses = await Course.find().sort({ createdAt: -1 });
+    const orders = await Order.find().populate('user').populate('courses').sort({ createdAt: -1 });
+    res.status(200).json({ users, classnotes, coupons, courses, orders });
+  } catch (err) {
+    res.status(500).json({ message: "Error" });
+  }
+});
+
+// Course Management (Admin)
+app.post("/api/admin/courses", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const course = new Course(req.body);
+    await course.save();
+    res.status(201).json({ message: "Course added" });
+  } catch (err) { res.status(500).json({ message: "Error adding course" }); }
+});
+
+app.post("/api/admin/edit-course/:id", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    await Course.findByIdAndUpdate(req.params.id, req.body);
+    res.status(200).json({ message: "Course updated" });
+  } catch (err) { res.status(500).json({ message: "Error updating course" }); }
+});
+
+app.post("/api/admin/delete-course/:id", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    await Course.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Course deleted" });
+  } catch (err) { res.status(500).json({ message: "Error deleting course" }); }
+});
+
+app.post('/addClassNote', checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const newNote = new ClassNote(req.body);
+    await newNote.save();
+    res.status(201).json({ message: "Note added" });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
+});
+
+app.post('/editClassNote/:id', checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    await ClassNote.findByIdAndUpdate(req.params.id, req.body);
+    res.status(200).json({ message: "Note updated" });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
+});
+
+app.post('/deleteClassNote/:id', checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    await ClassNote.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Note deleted" });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
+});
+
+app.post('/api/admin/reorder-notes', checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const { orderList } = req.body; // Array of { id, order }
+    const updatePromises = orderList.map(item =>
+      ClassNote.findByIdAndUpdate(item.id, { order: item.order })
+    );
+    await Promise.all(updatePromises);
+    res.status(200).json({ message: "Order updated" });
+  } catch (err) { res.status(500).json({ message: "Error reordering notes" }); }
+});
+
+
+app.post("/updateAccess", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const { userId, courseId, status } = req.body;
+
+    if (!courseId) return res.status(400).json({ message: "Course ID is required" });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const courseIdx = user.purchasedCourses.findIndex(c => c.course && c.course.toString() === courseId);
+    if (courseIdx !== -1) {
+      user.purchasedCourses[courseIdx].status = status;
+    } else {
+      user.purchasedCourses.push({ course: courseId, status: status });
+    }
+    await user.save();
+
+
+    res.status(200).json({ message: "Access updated" });
+  } catch (err) { res.status(500).json({ message: "Error updating access" }); }
+});
+
+
+// --- COUPON ROUTES ---
+
+app.post("/api/admin/coupons", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const { code, discount, course } = req.body;
+    const coupon = new Coupon({
+      code: code.toUpperCase(),
+      discount,
+      course: course || null
+    });
+    await coupon.save();
+    res.status(201).json({ message: "Coupon created", coupon });
+  } catch (err) { res.status(500).json({ message: "Error create coupon" }); }
+});
+
+app.post("/api/admin/edit-coupon/:id", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    const { code, discount, course } = req.body;
+    await Coupon.findByIdAndUpdate(req.params.id, {
+      code: code.toUpperCase(),
+      discount,
+      course: course || null
+    });
+    res.status(200).json({ message: "Coupon updated" });
+  } catch (err) { res.status(500).json({ message: "Error updating coupon" }); }
+});
+
+
+app.post("/api/admin/delete-coupon/:id", checkAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: "Forbidden" });
+  try {
+    await Coupon.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Coupon deleted" });
+  } catch (err) { res.status(500).json({ message: "Error delete coupon" }); }
+});
+
+app.post("/api/validate-coupon", async (req, res) => {
+  try {
+    const { code, cartCourseIds } = req.body;
+    const coupon = await Coupon.findOne({ code: code.toUpperCase(), isActive: true });
+
+    if (!coupon) return res.status(404).json({ message: "Invalid or expired coupon" });
+
+    // If coupon is course-wise, check if that course is in cart
+    if (coupon.course) {
+      if (!cartCourseIds || !cartCourseIds.includes(coupon.course.toString())) {
+        return res.status(400).json({ message: "Coupon not applicable to courses in cart" });
       }
     }
-    
-    const classnotes = await ClassNote.find();
 
-    return res.render("dashboard",{user: req.session.user, classnotes, message:"Successfully Logged in"});
-  }
-  
-  res.render("login",{ message : "Bad Credentials" , type : "error" });
+    res.status(200).json({ id: coupon._id, discount: coupon.discount });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
 });
 
-app.get("/admin", checkAuth, async(req,res)=>{
-  if(req.session.user.role == 'admin'){
-    const classnotes = await ClassNote.find();
-    // Fetch users and class notes for admin
-    const users = await User.find();
-    return res.render("admin", { user: req.session.user, users, classnotes, message:"Successfully Logged in" });
+
+// --- CHECKOUT ROUTE ---
+
+app.post("/api/checkout", checkAuth, async (req, res) => {
+  try {
+    const { courses, totalAmount, discountAmount, finalAmount, couponCode } = req.body;
+
+    // Final check: Amount must be 0 for automatic success as requested
+    if (finalAmount > 0) {
+      return res.status(400).json({ message: "Checkout only allowed for free/fully discounted courses currently." });
+    }
+
+    let couponId = null;
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+      if (coupon) couponId = coupon._id;
+    }
+
+    const newOrder = new Order({
+      user: req.user.id,
+      courses: courses,
+      totalAmount,
+      discountAmount,
+      finalAmount,
+      couponUsed: couponId,
+      status: "approved" // Automatic approval since finalAmount is 0
+    });
+
+    await newOrder.save();
+
+    // Add courses to user account as "locked" initially
+    const user = await User.findById(req.user.id);
+    courses.forEach(id => {
+      if (!user.purchasedCourses.find(c => c.course && c.course.toString() === id)) {
+        user.purchasedCourses.push({ course: id, status: "locked" });
+      }
+    });
+    await user.save();
+
+
+    res.status(200).json({ message: "Order placed successfully!" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error during checkout" });
   }
+});
 
-  res.send("<h1>Unauthorised!!</h1>")
-})
+// --- USER ROUTES ---
 
-app.get("/contact", (req,res)=>{
-  res.render('contact',{ message : null });
-})
-app.get("/dashboard", checkAuth, async(req, res) => {
-  const classnotes = await ClassNote.find();
-  const message = req.session.message || null;
-  req.session.message = null;
-  res.render("dashboard", { user: req.session.user, classnotes, message });
+app.get("/api/dashboard-data", checkAuth, async (req, res) => {
+  try {
+    const classnotes = await ClassNote.find().populate('course').sort({ order: 1, createdAt: 1 });
+
+
+    const userFromDb = await User.findById(req.user.id).populate('purchasedCourses.course').select("-password");
+
+    res.status(200).json({ user: userFromDb, classnotes });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
 });
 
 app.post("/contact", async (req, res) => {
-  const { name, email, phone, subject, message } = req.body;
-
-      // Nodemailer Transporter Setup
-      let transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_PASS,
-          },
-      });
-
-      // Email Options
-      let mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: "abhishekkumarmahto20000@gmail.com", // Change to the recipient's email
-          subject: `New Contact Form Submission: ${subject}`,
-          text: `You have a new message from:
-
-    Name: ${name}
-    Email: ${email}
-    Phone: ${phone}
-
-    Message:
-    ${message}`,
-  };
-
   try {
-      await transporter.sendMail(mailOptions);
-      return res.render("contact",{message: "Email Sent Successfully!", type: "success"});
-  } catch (error) {
-      console.error("Error sending email:", error);
-      res.status(500).json({ success: false, message: "Email sending failed." });
-  }
+    const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS } });
+    await transporter.sendMail({ from: req.body.email, to: process.env.EMAIL_USER, subject: `Message from ${req.body.name}`, text: req.body.message });
+    res.status(200).json({ message: "Sent" });
+  } catch (error) { res.status(500).json({ message: "Failed" }); }
 });
 
-// Add Class Note
-app.post('/addClassNote', async (req, res) => {
+app.post("/update-profile", checkAuth, async (req, res) => {
   try {
-      const newNote = new ClassNote({
-          day: req.body.day,
-          notes: req.body.notes,
-          homework: req.body.homework,
-          pdfLink: req.body.pdfLink
-      });
-      await newNote.save();
-      res.redirect('/admin');
-  } catch (err) {
-      console.error(err);
-      res.redirect('/admin');
-  }
+    const user = await User.findByIdAndUpdate(req.user.id, { firstName: req.body.firstName, lastName: req.body.lastName }, { new: true });
+    res.status(200).json({ message: "Updated", user });
+  } catch (error) { res.status(500).json({ message: "Error" }); }
 });
 
-// Show Edit Class Note Form
-app.get('/editClassNote/:id', async (req, res) => {
+app.post("/updatePassword", checkAuth, async (req, res) => {
   try {
-      const note = await ClassNote.findById(req.params.id);
-      res.render('editClassNote', { note });
-  } catch (err) {
-      console.error(err);
-      res.redirect('/admin');
-  }
+    const targetUserId = (req.user.role === 'admin' && req.body.userId) ? req.body.userId : req.user.id;
+    const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
+    await User.findByIdAndUpdate(targetUserId, { password: hashedPassword });
+    res.status(200).json({ message: "Password updated" });
+  } catch (err) { res.status(500).json({ message: "Error" }); }
 });
 
-// Update Class Note
-app.post('/editClassNote/:id', async (req, res) => {
-  try {
-      await ClassNote.findByIdAndUpdate(req.params.id, {
-          day: req.body.day,
-          notes: req.body.notes,
-          homework: req.body.homework,
-          pdfLink : req.body.pdfLink
-      });
-      res.redirect('/admin');
-  } catch (err) {
-      console.error(err);
-      res.redirect('/admin');
-  }
-});
-
-// Delete Class Note
-app.post('/deleteClassNote/:id', async (req, res) => {
-  try {
-      await ClassNote.findByIdAndDelete(req.params.id);
-      res.redirect('/admin');
-  } catch (err) {
-      console.error(err);
-      res.redirect('/admin');
-  } 
-});
-
-app.get("/update-profile", async (req, res) => {
-  return res.redirect("/dashboard");
-})
- 
-// Update profile 
-app.post("/update-profile", async (req, res) => {
-  try {
-      const { firstName, lastName, username, email } = req.body;
-
-      // Ensure the user exists
-      let user = await User.findOne({ username });
-      if (!user) {
-          return res.status(404).send("User not found");
-      }
-
-      // Update the user's details
-      user.firstName = firstName;
-      user.lastName = lastName;
-
-      await user.save();
-      const classnotes = await ClassNote.find();
-      req.session.message = "Profile updated successfully!";
-      res.redirect('/dashboard');
-      // res.render("dashboard", { user, classnotes,  });
-  } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
-  }
-}); 
-
-//updatePassword
-app.post("/updatePassword", async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).send("<h1>Unauthorized!! <br>You need to login first.</h1>"); 
-  }
-
-  if(req.session.user.role == 'user'){ 
-    const userId = req.session.user.id;
-    
-    const { newPassword } = req.body;
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    await User.findByIdAndUpdate(userId, { password: hashedPassword });
-    req.session.message = "Password updated successfully!";
-    return res.redirect('/dashboard'); 
-  }
-    //If user-role is admin
-  const { userId, newPassword } = req.body;
-  
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-  await User.findByIdAndUpdate(userId, { password: hashedPassword });
-
-  res.redirect("/admin");
-});
-
-//updateAccess
-app.post("/updateAccess", async (req, res) => {
-  const { userId, access } = req.body;
-
-  await User.findByIdAndUpdate(userId, { access });
-
-  res.redirect("/admin");
-});
-
-app.get("/logout", (req, res) => {
-  req.session.destroy(() => {
-    res.redirect("/");
-  });
-});
-
-app.listen(PORT, () => console.log(`Server running on port : ${PORT}`));
+app.listen(PORT, () => console.log(`JWT Server running on port : ${PORT}`));
