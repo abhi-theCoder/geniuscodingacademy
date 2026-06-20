@@ -129,6 +129,16 @@
                     </div>
                 </a>
             </li>
+            <li>
+                <a href="#"
+                    class="nav-item flex items-center justify-between p-3.5 rounded-2xl transition-all hover:bg-white/5 group"
+                    onclick="showContent('my-certificates-section', this)">
+                    <div class="flex items-center gap-4">
+                        <span class="text-xl">📜</span>
+                        <span class="font-medium group-hover:translate-x-1 transition-transform">Certificates</span>
+                    </div>
+                </a>
+            </li>
         </ul>
 
         <!-- Bottom Actions -->
@@ -228,6 +238,13 @@
                 </div>
             </div>
 
+            <div id="my-certificates-section" class="content-section hidden">
+                <h1 class="text-2xl font-bold mb-4 text-center">My Certificates</h1>
+                <div id="dashboard-certificates-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="text-center col-span-full py-12 text-gray-500 italic bg-white rounded-2xl shadow">Loading certificates...</div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -299,6 +316,9 @@
 
                 // Update localStorage with latest data (especially access)
                 localStorage.setItem('user', JSON.stringify(user));
+
+                // Populate certificates
+                renderUserCertificates(data.certificates || []);
 
                 // Populate Purchased Courses
                 const coursesContainer = document.getElementById('courses-container');
@@ -531,6 +551,41 @@
         function closePDF() {
             document.getElementById("pdfModal").classList.add("hidden");
             document.getElementById("pdfViewer").src = "";
+        }
+
+        function renderUserCertificates(certs) {
+            const container = document.getElementById('dashboard-certificates-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (certs.length === 0) {
+                container.innerHTML = '<div class="text-center col-span-full py-12 text-gray-500 italic bg-white rounded-2xl shadow">No certificates generated for you yet. Once generated, they will appear here.</div>';
+                return;
+            }
+
+            certs.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'bg-white rounded-2xl overflow-hidden shadow-lg border-t-4 border-amber-500 p-5 flex flex-col justify-between';
+                const formattedDate = new Date(c.issueDate).toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+                
+                div.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">${c.certificateId}</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">${c.type}</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-gray-800">${c.title}</h3>
+                        <p class="text-xs text-gray-400 mt-1">Recipient: ${c.recipientName}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Issued: ${formattedDate} ${c.duration ? `| Duration: ${c.duration}` : ''}</p>
+                    </div>
+                    <div class="mt-6">
+                        <a href="./certificates.html?userId=${c.user}" target="_blank" class="w-full inline-block text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2 px-4 rounded-xl font-bold transition shadow-sm">👁️ View Certificate Portfolio</a>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         // Background 3D Effect

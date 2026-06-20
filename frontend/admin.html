@@ -90,6 +90,16 @@
                 <span class="font-medium">Manage Users</span>
             </a>
             <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('manageCertificates', this)">
+                <span class="text-lg">📜</span>
+                <span class="font-medium">Certificates</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
+                onclick="showContent('manageOfferLetters', this)">
+                <span class="text-lg">✉️</span>
+                <span class="font-medium">Offer Letters</span>
+            </a>
+            <a href="#" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all group"
                 onclick="showContent('manageOrders', this)">
                 <span class="text-lg">📦</span>
                 <span class="font-medium">Orders</span>
@@ -228,6 +238,9 @@
             <!-- Manage Users -->
             <section id="manageUsers" class="mt-6 content-section hidden">
                 <h2 class="text-2xl font-bold text-indigo-700 mb-6 text-center">User & Course Access</h2>
+                <div class="mb-6 max-w-md mx-auto">
+                    <input type="text" id="user-search-input" oninput="renderUsers()" placeholder="🔍 Search users by name, username, or email..." class="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
                 <div id="users-admin-container" class="space-y-6"></div>
             </section>
 
@@ -247,6 +260,136 @@
                         </thead>
                         <tbody id="orders-list-body"></tbody>
                     </table>
+                </div>
+            </section>
+
+            <!-- Manage Certificates -->
+            <section id="manageCertificates" class="mt-6 content-section hidden">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-6 text-center font-bold">Certificate Management</h2>
+                
+                <!-- Create Certificate Form -->
+                <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8 max-w-2xl mx-auto shadow-sm">
+                    <h3 class="text-xl font-bold mb-4 text-indigo-800 flex items-center gap-2">📜 Create New Certificate</h3>
+                    <form id="createCertificateForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Select Student</label>
+                                <select id="cert-user-select" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">-- Choose User --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Recipient Name (Full Name)</label>
+                                <input type="text" id="cert-recipient-name" required placeholder="e.g. Abhishek Kumar Mahto" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Certificate Type</label>
+                                <select id="cert-type-select" required class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                                    <option value="course">Course Completion</option>
+                                    <option value="internship">Internship Completion</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Course/Internship Title</label>
+                                <input type="text" id="cert-title" required placeholder="e.g. Full Stack Web Development" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Duration (Optional, e.g. "3 Months")</label>
+                                <input type="text" id="cert-duration" placeholder="e.g. 3 Months" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Issue Date</label>
+                                <input type="date" id="cert-date" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg transition shadow-md animate-pulse hover:animate-none">Generate Certificate</button>
+                    </form>
+                </div>
+
+                <!-- Certificates List -->
+                <h3 class="text-xl font-bold mb-4 text-indigo-800">Issued Certificates</h3>
+                <div class="overflow-x-auto bg-white rounded-lg border shadow-sm">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="bg-gray-50 uppercase text-xs font-bold text-gray-600 border-b">
+                            <tr>
+                                <th class="px-4 py-3">Certificate ID</th>
+                                <th class="px-4 py-3">Student Name</th>
+                                <th class="px-4 py-3">Title (Type)</th>
+                                <th class="px-4 py-3">Issue Date</th>
+                                <th class="px-4 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="certificates-list-body">
+                            <!-- Dynamic items -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Manage Offer Letters -->
+            <section id="manageOfferLetters" class="mt-6 content-section hidden">
+                <h2 class="text-2xl font-bold text-indigo-700 mb-6 text-center font-bold">Offer Letter Generator</h2>
+                
+                <!-- Send Offer Letter Form -->
+                <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8 max-w-2xl mx-auto shadow-sm">
+                    <h3 class="text-xl font-bold mb-4 text-indigo-800 flex items-center gap-2">✉️ Generate & Send Offer Letter</h3>
+                    
+                    <!-- Info Banner -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
+                        <strong>📧 Email Preview:</strong> The email is sent as a clean, plain-text message to ensure inbox delivery, and contains the formal Offer Letter as a PDF attachment including all stipend/compensation details.
+                    </div>
+
+                    <form id="sendOfferLetterForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Recipient Name (Full Name)</label>
+                                <input type="text" id="offer-recipient-name" required placeholder="e.g. Abhishek Kumar Mahto" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Recipient Email Address</label>
+                                <input type="email" id="offer-recipient-email" required placeholder="student@gmail.com" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Role Type</label>
+                                <select id="offer-role-type" required class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                                    <option value="Internship">Internship Role</option>
+                                    <option value="Full-Time">Full-Time Employment</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Job Title</label>
+                                <input type="text" id="offer-job-title" required placeholder="e.g. Presentation Design Intern" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">Start Date</label>
+                                <input type="date" id="offer-start-date" required class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1" id="stipend-amount-label">Stipend Amount (₹ per month)</label>
+                                <input type="number" id="offer-stipend-amount" required placeholder="e.g. 5000" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div id="duration-field-container">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Stipend Duration (in months)</label>
+                            <input type="number" id="offer-stipend-months" required placeholder="e.g. 3" class="w-full p-2.5 border rounded-lg bg-white shadow-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <button type="submit" id="offerLetterSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">✉️ Send Offer Letter Email</button>
+                    </form>
                 </div>
             </section>
         </div>
@@ -297,6 +440,29 @@
                 });
             }
 
+            // Dynamic form fields for Offer Letter based on Role Type
+            const roleTypeSelect = document.getElementById('offer-role-type');
+            const durationContainer = document.getElementById('duration-field-container');
+            const stipendAmountLabel = document.getElementById('stipend-amount-label');
+            const stipendMonthsInput = document.getElementById('offer-stipend-months');
+
+            if (roleTypeSelect && durationContainer && stipendAmountLabel && stipendMonthsInput) {
+                const handleRoleTypeChange = () => {
+                    if (roleTypeSelect.value === 'Internship') {
+                        durationContainer.classList.remove('hidden');
+                        stipendMonthsInput.required = true;
+                        stipendAmountLabel.innerText = 'Stipend Amount (₹ per month)';
+                    } else {
+                        durationContainer.classList.add('hidden');
+                        stipendMonthsInput.required = false;
+                        stipendMonthsInput.value = '';
+                        stipendAmountLabel.innerText = 'Salary Amount (₹ per month)';
+                    }
+                };
+                roleTypeSelect.addEventListener('change', handleRoleTypeChange);
+                handleRoleTypeChange();
+            }
+
             fetchAdminData();
 
             // Set default active state
@@ -324,6 +490,8 @@
             renderUsers();
             renderOrders();
             renderCourseSelects();
+            renderCertificateFormSelects();
+            renderCertificates();
         }
 
         function renderCourseSelects() {
@@ -442,7 +610,14 @@
         function renderUsers() {
             const container = document.getElementById('users-admin-container');
             container.innerHTML = '';
-            cachedData.users.forEach(u => {
+            const searchVal = document.getElementById('user-search-input')?.value.toLowerCase() || '';
+            const filteredUsers = cachedData.users.filter(u => 
+                `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchVal) ||
+                u.username.toLowerCase().includes(searchVal) ||
+                u.email.toLowerCase().includes(searchVal)
+            );
+
+            filteredUsers.forEach(u => {
                 const div = document.createElement('div');
                 div.className = 'border bg-white p-5 rounded-xl shadow-sm';
                 let courseAccessHtml = '';
@@ -460,7 +635,7 @@
                                 <div class="flex gap-2 items-center">
                                     <span class="text-xs ${isLocked ? 'text-red-500' : 'text-green-500'} font-bold">${ca.status.toUpperCase()}</span>
                                     <button onclick="updateCourseAccess('${u._id}', '${courseId}', '${statusToSet}')" 
-                                            class="bg-white border px-2 py-1 rounded text-[10px] font-bold shadow-sm hover:bg-gray-100">
+                                             class="bg-white border px-2 py-1 rounded text-[10px] font-bold shadow-sm hover:bg-gray-100">
                                         ${isLocked ? '🔓 Unlock' : '🔒 Lock'}
                                     </button>
                                 </div>
@@ -477,9 +652,15 @@
                             <h3 class="font-bold text-gray-800 text-lg">${u.firstName} ${u.lastName} (@${u.username})</h3>
                             <p class="text-gray-500 text-sm">${u.email}</p>
                         </div>
-                        <div class="flex flex-col items-end gap-2">
-                           <!-- Global Access Removed -->
+                        <div class="flex items-center gap-2">
+                           <button onclick="toggleResetPasswordForm('${u._id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-indigo-100 transition-all">🔑 Reset Password</button>
                         </div>
+                    </div>
+                    <!-- Inline Password Reset Form -->
+                    <div id="reset-pw-${u._id}" class="hidden mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center gap-2 transition-all">
+                        <input type="password" id="new-pw-input-${u._id}" placeholder="Enter new password" class="p-2 border rounded-lg text-sm flex-1 bg-white">
+                        <button onclick="adminResetPassword('${u._id}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-700">Save</button>
+                        <button onclick="toggleResetPasswordForm('${u._id}')" class="bg-gray-300 text-gray-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-gray-400">Cancel</button>
                     </div>
                     ${courseAccessHtml || '<p class="text-xs italic text-gray-400 mt-2">No individual courses purchased yet.</p>'}
                 `;
@@ -723,6 +904,181 @@
         async function deleteNote(id) { if (confirm('Delete?')) { const token = localStorage.getItem('token'); await fetch(`${window.API_BASE_URL}/deleteClassNote/${id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); fetchAdminData(); } }
         function openPDF(link) { document.getElementById("pdfViewer").src = link; document.getElementById("pdfViewerContainer").classList.remove("hidden"); }
         function closePDF() { document.getElementById("pdfViewerContainer").classList.add("hidden"); document.getElementById("pdfViewer").src = ""; }
+
+        // --- PASSWORD RESET & CERTIFICATE HELPERS ---
+        function toggleResetPasswordForm(userId) {
+            const form = document.getElementById(`reset-pw-${userId}`);
+            form.classList.toggle('hidden');
+        }
+
+        async function adminResetPassword(userId) {
+            const newPassword = document.getElementById(`new-pw-input-${userId}`).value;
+            if (!newPassword) return alert('Password cannot be empty');
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/updatePassword`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ userId, newPassword })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Password reset successfully!');
+                    toggleResetPasswordForm(userId);
+                } else {
+                    alert(data.message || 'Failed to reset password');
+                }
+            } catch (err) {
+                alert('Error resetting password');
+            }
+        }
+
+        function renderCertificateFormSelects() {
+            const userSelect = document.getElementById('cert-user-select');
+            if (!userSelect) return;
+            const currentVal = userSelect.value;
+            userSelect.innerHTML = '<option value="">-- Choose User --</option>';
+            cachedData.users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u._id;
+                opt.textContent = `${u.firstName} ${u.lastName} (@${u.username})`;
+                userSelect.appendChild(opt);
+            });
+            userSelect.value = currentVal;
+        }
+
+        // Auto fill student name upon selection
+        document.getElementById('cert-user-select')?.addEventListener('change', (e) => {
+            const userId = e.target.value;
+            const userObj = cachedData.users.find(u => u._id === userId);
+            if (userObj) {
+                document.getElementById('cert-recipient-name').value = `${userObj.firstName} ${userObj.lastName}`;
+            } else {
+                document.getElementById('cert-recipient-name').value = '';
+            }
+        });
+
+        function renderCertificates() {
+            const body = document.getElementById('certificates-list-body');
+            if (!body) return;
+            body.innerHTML = '';
+            
+            if (!cachedData.certificates || cachedData.certificates.length === 0) {
+                body.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400 italic">No certificates issued yet.</td></tr>';
+                return;
+            }
+
+            cachedData.certificates.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50';
+                const formattedDate = new Date(c.issueDate).toLocaleDateString();
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-xs font-bold text-indigo-700">${c.certificateId}</td>
+                    <td class="px-4 py-3 font-semibold">${c.recipientName}</td>
+                    <td class="px-4 py-3">${c.title} <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded font-semibold ml-2 uppercase">${c.type}</span></td>
+                    <td class="px-4 py-3 text-xs opacity-70">${formattedDate}</td>
+                    <td class="px-4 py-3 flex gap-2">
+                        ${c.user ? `
+                            <a href="./certificates.html?userId=${c.user._id || c.user}" target="_blank" class="bg-blue-50 text-blue-600 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-blue-100">👁️ View Portfolio</a>
+                        ` : `
+                            <a href="./certificates.html?certId=${c.certificateId}" target="_blank" class="bg-blue-50 text-amber-600 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-amber-100 border border-amber-200">👁️ View Cert</a>
+                        `}
+                        <button onclick="deleteCertificate('${c._id}')" class="bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-red-100">🗑️ Delete</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        document.getElementById('createCertificateForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const body = {
+                userId: document.getElementById('cert-user-select').value || undefined,
+                recipientName: document.getElementById('cert-recipient-name').value,
+                type: document.getElementById('cert-type-select').value,
+                title: document.getElementById('cert-title').value,
+                duration: document.getElementById('cert-duration').value || undefined,
+                issueDate: document.getElementById('cert-date').value || undefined,
+            };
+
+            try {
+                const res = await fetch(`${window.API_BASE_URL}/api/admin/certificates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    document.getElementById('createCertificateForm').reset();
+                    fetchAdminData();
+                    alert('Certificate generated successfully!');
+                } else {
+                    const data = await res.json();
+                    alert(data.message || 'Failed to generate certificate');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error generating certificate');
+            }
+        };
+
+        async function deleteCertificate(id) {
+            if (!confirm('Are you sure you want to delete this certificate?')) return;
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`${window.API_BASE_URL}/api/admin/delete-certificate/${id}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    fetchAdminData();
+                } else {
+                    alert('Failed to delete certificate');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        document.getElementById('sendOfferLetterForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('offerLetterSubmitBtn');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Sending Email...';
+            submitBtn.disabled = true;
+
+            const token = localStorage.getItem('token');
+            const body = {
+                recipientName: document.getElementById('offer-recipient-name').value,
+                recipientEmail: document.getElementById('offer-recipient-email').value,
+                roleType: document.getElementById('offer-role-type').value,
+                jobTitle: document.getElementById('offer-job-title').value,
+                startDate: document.getElementById('offer-start-date').value,
+                stipendAmount: document.getElementById('offer-stipend-amount').value,
+                stipendMonths: document.getElementById('offer-stipend-months').value || undefined,
+            };
+
+            try {
+                const res = await fetch(`${window.API_BASE_URL}/api/admin/send-offer-letter`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('sendOfferLetterForm').reset();
+                    alert('Offer letter generated and sent successfully!');
+                } else {
+                    alert(data.message || 'Failed to send offer letter');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error sending offer letter');
+            } finally {
+                submitBtn.innerText = originalText;
+                submitBtn.disabled = false;
+            }
+        };
     </script>
 </body>
 

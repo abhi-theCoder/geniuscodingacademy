@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.5">
+    <title>Verifying Certificates - Genius Coding Academy</title>
+    <script src="config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0f172a;
+        }
+
+        .cert-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .gold-text {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border {
+            border-image: linear-gradient(135deg, #f59e0b, #d97706) 1;
+        }
+
+        /* Certificate Styling */
+        .cert-container {
+            background: #ffffff;
+            color: #1e293b;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Certificate background design elements */
+        .cert-bg-pattern {
+            position: absolute;
+            inset: 0;
+            opacity: 0.03;
+            background-image: radial-gradient(circle, #000 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+
+        .cert-corner-border {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #d97706;
+            pointer-events: none;
+        }
+
+        .top-left { top: 20px; left: 20px; border-right: none; border-bottom: none; }
+        .top-right { top: 20px; right: 20px; border-left: none; border-bottom: none; }
+        .bottom-left { bottom: 20px; left: 20px; border-right: none; border-top: none; }
+        .bottom-right { bottom: 20px; right: 20px; border-left: none; border-top: none; }
+
+        /* Print Specific Styles */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Hide everything except the active certificate element */
+            body > *:not(#print-wrapper) {
+                display: none !important;
+            }
+
+            #print-wrapper {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+            }
+
+            .cert-container {
+                box-shadow: none !important;
+                border: 12px double #d97706 !important;
+                width: 100% !important;
+                height: 100% !important;
+                page-break-inside: avoid;
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="text-white min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <div class="w-full max-w-5xl no-print">
+        <!-- Logo and Header -->
+        <div class="flex flex-col items-center text-center mb-10 mt-6">
+            <a href="index.html" class="mb-4 transition hover:scale-115">
+                <img src="images/logo1.png" alt="Logo" class="h-16 w-16 mx-auto">
+            </a>
+            <h1 class="text-3xl font-extrabold text-indigo-400">Genius Coding Academy</h1>
+            <p class="text-gray-400 mt-2">Official Certification & Verification Portal</p>
+        </div>
+
+        <!-- Search/Verify Certificate Form -->
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl mb-8 shadow-xl max-w-xl mx-auto no-print">
+            <h3 class="text-md font-bold text-indigo-400 mb-3 text-center">🔍 Verify a Certificate</h3>
+            <div class="flex gap-2">
+                <input type="text" id="verification-input" placeholder="Enter Certificate ID (e.g. GCA-20260621-0001)" class="flex-1 p-3 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <button onclick="handleManualVerify()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl transition">Verify</button>
+            </div>
+            <div id="verify-error-msg" class="text-red-400 text-xs mt-2 hidden text-center"></div>
+        </div>
+
+        <!-- Verification Notice Panel -->
+        <div id="status-panel" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+            <div>
+                <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">✓ Officially Verified Profile</span>
+                <h2 id="student-name" class="text-2xl font-bold mt-2">Loading Student profile...</h2>
+                <p id="student-email" class="text-slate-400 text-sm mt-1"></p>
+            </div>
+            <div class="text-center md:text-right">
+                <p class="text-xs text-slate-400 uppercase tracking-widest font-semibold">Verification Date</p>
+                <p id="current-time" class="text-md font-bold text-indigo-300 mt-1"></p>
+            </div>
+        </div>
+
+        <h3 class="text-xl font-bold mb-4 text-slate-300">Available Certificates</h3>
+        <!-- Certificates List Grid -->
+        <div id="certificates-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            <div class="col-span-full text-center py-12 text-slate-500 italic">Fetching credentials...</div>
+        </div>
+    </div>
+
+    <!-- Hidden Print Wrapper container -->
+    <div id="print-wrapper" class="hidden md:block w-full max-w-4xl p-2">
+        <div id="active-cert-render">
+            <!-- Render target for active certificate -->
+        </div>
+    </div>
+
+    <script>
+        let certificates = [];
+        let user = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('current-time').textContent = new Date().toLocaleDateString(undefined, {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('userId');
+            const certId = params.get('certId');
+
+            if (certId) {
+                verifyCertificateById(certId);
+            } else if (userId) {
+                fetchCertificates(userId);
+            } else {
+                showDefaultVerificationState();
+            }
+        });
+
+        async function fetchCertificates(userId) {
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/public/certificates/${userId}`);
+                if (!response.ok) throw new Error('Not found');
+
+                const data = await response.json();
+                certificates = data.certificates;
+                user = data.user;
+
+                if (!user) {
+                    showError('Account not found.');
+                    return;
+                }
+
+                renderProfile();
+            } catch (err) {
+                showError('Error connecting to verification server.');
+            }
+        }
+
+        function renderProfile() {
+            document.getElementById('student-name').textContent = `${user.firstName} ${user.lastName}`;
+            document.getElementById('student-email').textContent = `${user.email} (@${user.username})`;
+
+            const grid = document.getElementById('certificates-grid');
+            grid.innerHTML = '';
+
+            if (certificates.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500 italic bg-slate-800/50 rounded-2xl border border-slate-700">No certificates generated for this student yet.</div>';
+                return;
+            }
+
+            certificates.forEach((c, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800 border border-slate-700 p-6 rounded-2xl flex flex-col justify-between shadow-lg hover:border-slate-600 transition';
+                const formattedDate = new Date(c.issueDate).toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/10">${c.certificateId}</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/10">${c.type}</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">${c.title}</h4>
+                        <p class="text-xs text-slate-400">Issued: ${formattedDate} ${c.duration ? `| Duration: ${c.duration}` : ''}</p>
+                    </div>
+                    <div class="mt-6 flex gap-3">
+                        <button onclick="previewCertificate(${index})" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition">👁 View Certificate</button>
+                        <button onclick="downloadPDF(${index})" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition">📥 Download PDF</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Automatically preview the first certificate by default
+            previewCertificate(0);
+        }
+
+        function getCertificateHTML(c) {
+            const formattedDate = new Date(c.issueDate).toLocaleDateString(undefined, {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+            const verificationUrl = `${window.location.origin}${window.location.pathname}?certId=${c.certificateId}`;
+            const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(verificationUrl)}`;
+
+            return `
+                <div class="cert-container border-[12px] double gold-border p-6 md:p-12 relative flex flex-col justify-between min-h-[560px]">
+                    <div class="cert-bg-pattern"></div>
+                    
+                    <!-- Corner Borders -->
+                    <div class="cert-corner-border top-left"></div>
+                    <div class="cert-corner-border top-right"></div>
+                    <div class="cert-corner-border bottom-left"></div>
+                    <div class="cert-corner-border bottom-right"></div>
+
+                    <!-- Certificate Header -->
+                    <div class="text-center relative">
+                        <img src="images/logo1.png" alt="GCA logo" class="h-14 w-14 mx-auto mb-3 opacity-90">
+                        <h2 class="cert-font text-3xl font-extrabold text-slate-800 tracking-tight">GENIUS CODING ACADEMY</h2>
+                        <div class="w-24 h-0.5 bg-amber-500 mx-auto mt-2 mb-1"></div>
+                        <p class="text-[9px] uppercase tracking-widest text-slate-500 font-bold">The Premium Institute for Developer Training</p>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="text-center my-6 relative">
+                        <p class="cert-font italic text-md text-amber-600 font-medium">Certificate of Achievement</p>
+                        <p class="text-xs text-slate-500 uppercase tracking-wider mt-1 mb-4">This is proudly presented to</p>
+                        <h3 class="cert-font text-3xl font-bold text-slate-800 tracking-wide border-b border-dashed border-slate-300 pb-2 max-w-lg mx-auto">${c.recipientName}</h3>
+                        
+                        ${c.type === 'internship' ? `
+                            <div class="text-xs text-slate-600 mt-4 max-w-xl mx-auto leading-relaxed space-y-3">
+                                <p>
+                                    has successfully completed a <strong>${c.duration || '3-month'}</strong> internship as a 
+                                    <strong class="text-slate-800 font-bold cert-font">${c.title}</strong> at Genius Coding Academy.
+                                </p>
+                                <p>
+                                    During the internship period, they actively contributed to assigned projects and organizational activities while demonstrating professionalism, dedication, and a strong willingness to learn. They consistently fulfilled their responsibilities with commitment and a positive attitude, exhibiting effective teamwork, communication, and problem-solving skills. Their contributions were valuable to the organization and greatly appreciated.
+                                </p>
+                                <p class="font-semibold text-slate-700">
+                                    We wish them success in all their future endeavors.
+                                </p>
+                            </div>
+                        ` : `
+                            <p class="text-xs text-slate-600 mt-4 max-w-xl mx-auto leading-relaxed">
+                                for successful completion and demonstrating proficiency in
+                                <strong class="text-slate-800 font-bold block text-lg mt-1.5 cert-font">${c.title}</strong>
+                                course curriculum program ${c.duration ? `for a duration of <strong>${c.duration}</strong>` : ''}.
+                            </p>
+                        `}
+                    </div>
+
+                    <!-- Footer Signature and QR -->
+                    <div class="flex flex-row justify-between items-end relative mt-4 border-t border-slate-100 pt-6">
+                        <div class="text-left">
+                            <p class="text-[10px] text-slate-400 font-semibold uppercase">Certificate ID</p>
+                            <p class="text-xs font-mono font-extrabold text-slate-700">${c.certificateId}</p>
+                            <p class="text-[10px] text-slate-400 font-semibold uppercase mt-3">Issue Date</p>
+                            <p class="text-xs font-bold text-slate-700">${formattedDate}</p>
+                        </div>
+                        <!-- Verification QR Code -->
+                        <div class="text-center flex flex-col items-center bg-white p-1.5 border border-slate-100 rounded-lg shadow-sm">
+                            <img src="${qrImageUrl}" alt="Verification QR Code" class="h-16 w-16">
+                            <span class="text-[7px] uppercase tracking-wide font-black text-slate-400 mt-1">Scan to Verify</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function previewCertificate(index) {
+            const cert = certificates[index];
+            if (!cert) return;
+            const container = document.getElementById('active-cert-render');
+            container.innerHTML = getCertificateHTML(cert);
+            
+            // Smoothly scroll down to the certificate preview on mobile
+            if (window.innerWidth < 768) {
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function downloadPDF(index) {
+            previewCertificate(index);
+            // Small timeout to ensure DOM update is rendered
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        function showError(message) {
+            document.getElementById('status-panel').classList.remove('hidden');
+            document.getElementById('status-panel').className = 'bg-red-950 border border-red-900 p-6 rounded-2xl mb-8 text-center';
+            document.getElementById('status-panel').innerHTML = `<p class="font-bold text-red-400">❌ ${message}</p>`;
+            document.getElementById('certificates-grid').innerHTML = '';
+        }
+
+        async function verifyCertificateById(certId) {
+            try {
+                const response = await fetch(`${window.API_BASE_URL}/api/public/certificates/verify/${certId}`);
+                if (!response.ok) {
+                    showError('Certificate not found or invalid ID.');
+                    return;
+                }
+
+                const data = await response.json();
+                const cert = data.certificate;
+                
+                document.getElementById('status-panel').classList.remove('hidden');
+                document.getElementById('status-panel').className = 'bg-emerald-950 border border-emerald-900 p-6 rounded-2xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl';
+                
+                const recipientInfo = cert.user ? `${cert.user.firstName} ${cert.user.lastName} (@${cert.user.username})` : 'External Recipient (Outsider)';
+                const recipientEmail = cert.user ? cert.user.email : 'N/A';
+                
+                document.getElementById('student-name').innerHTML = `<span class="text-sm font-semibold text-emerald-400 block">✓ Valid Certificate Found</span> ${cert.recipientName}`;
+                document.getElementById('student-email').textContent = `Associated User: ${recipientInfo} | Email: ${recipientEmail}`;
+
+                certificates = [cert];
+                
+                const grid = document.getElementById('certificates-grid');
+                grid.innerHTML = '';
+                
+                const formattedDate = new Date(cert.issueDate).toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                });
+                
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800 border border-slate-700 p-6 rounded-2xl flex flex-col justify-between shadow-lg hover:border-slate-600 transition col-span-full max-w-xl mx-auto w-full';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-lg border border-indigo-500/10">${cert.certificateId}</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/10">${cert.type}</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-white mb-2">${cert.title}</h4>
+                        <p class="text-xs text-slate-400">Issued: ${formattedDate} ${cert.duration ? `| Duration: ${cert.duration}` : ''}</p>
+                    </div>
+                    <div class="mt-6 flex gap-3">
+                        <button onclick="previewCertificate(0)" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition">👁 View Certificate</button>
+                        <button onclick="downloadPDF(0)" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition">📥 Download PDF</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                previewCertificate(0);
+            } catch (err) {
+                showError('Error connecting to verification server.');
+            }
+        }
+
+        function showDefaultVerificationState() {
+            document.getElementById('status-panel').classList.add('hidden');
+            document.getElementById('certificates-grid').innerHTML = `
+                <div class="col-span-full text-center py-12 text-slate-500 bg-slate-800/40 rounded-2xl border border-slate-700/50">
+                    <p class="text-lg font-semibold text-slate-400">Welcome to Certificate Verification</p>
+                    <p class="text-sm mt-1">Please enter a Certificate ID above to view and verify credential details.</p>
+                </div>
+            `;
+            document.getElementById('active-cert-render').innerHTML = '';
+        }
+
+        function handleManualVerify() {
+            const input = document.getElementById('verification-input').value.trim();
+            const errorMsg = document.getElementById('verify-error-msg');
+            
+            if (!input) {
+                errorMsg.textContent = 'Please enter a Certificate ID';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            
+            errorMsg.classList.add('hidden');
+            const newUrl = `${window.location.origin}${window.location.pathname}?certId=${encodeURIComponent(input)}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            
+            verifyCertificateById(input);
+        }
+    </script>
+</body>
+
+</html>
